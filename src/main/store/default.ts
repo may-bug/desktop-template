@@ -1,6 +1,8 @@
 import Store from 'electron-store'
 import { app } from 'electron'
 
+const defaultSaveFilePath = app.getPath('exe') + 'file'
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const initialState = (store, key, value) => {
   if (store.get(key) == undefined) {
@@ -24,6 +26,7 @@ const createStore = () => {
   initialState(store, 'welcome', false)
   initialState(store, 'remember_closed', false)
   initialState(store, 'closed_value', false)
+  initialState(store, 'default_file_path', defaultSaveFilePath)
   return store
 }
 

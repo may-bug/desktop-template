@@ -10,7 +10,6 @@ import { initTray } from './tray'
 import { initStore } from './store'
 import { initSqlite } from './sqlite'
 import { initLog } from './log'
-import { logger } from './log/log'
 import { initFile } from './file'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
@@ -65,7 +64,6 @@ app.whenReady().then(async () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   const welcome = store.get('welcome')
-  logger.info(`store get ${welcome}`)
   if (welcome == undefined) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
