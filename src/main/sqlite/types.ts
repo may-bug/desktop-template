@@ -1,17 +1,17 @@
 // src/sqlite/types.ts
 export interface queryParam {
   sql: string
-  params?: any[]
+  params?: never[]
 }
 
 export interface insertParam {
   table: string
-  data: { [key: string]: any }
+  data: { [key: string]: never }
 }
 
 export interface updateParam {
   table: string
-  data: { [key: string]: any }
+  data: { [key: string]: never }
   condition: string
 }
 

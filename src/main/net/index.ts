@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { NetOptions } from './types'
-import { getNetworkSpeed, getNetworkType, netRequest} from './net'
+import { getNetworkSpeed, getNetworkType, netRequest } from './net'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const initNet = () => {

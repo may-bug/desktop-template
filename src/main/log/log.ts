@@ -18,7 +18,7 @@ const dateStr = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.ge
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 log.transports.file.resolvePath = () => app.getPath('logs') + '/' + dateStr + '.log'
 
-const logger={
+const logger = {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   info(param) {
     log.info(param)
@@ -27,15 +27,19 @@ const logger={
   warn(param) {
     log.warn(param)
   },
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   error(param) {
     log.error(param)
   },
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   debug(param) {
     log.debug(param)
   },
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   verbose(param) {
     log.verbose(param)
   },
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   silly(param) {
     log.silly(param)
   }

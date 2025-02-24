@@ -21,7 +21,7 @@ class Database {
 
   open(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve, _reject) => {
       this.db.serialize(() => {
         this.db.run('PRAGMA foreign_keys = ON')
         logger.info('Connected to the database.')
@@ -79,7 +79,8 @@ class Database {
   update(param: updateParam): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       const entries = Object.entries(param.data)
-        .map(([key, value]) => `${key} = ?`)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .map(([key, _value]) => `${key} = ?`)
         .join(',')
       const params = Object.values(param.data)
       const sql = `UPDATE ${param.table} SET ${entries} WHERE ${param.condition}`

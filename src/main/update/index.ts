@@ -3,7 +3,7 @@ import { ipcMain } from 'electron'
 import { installUpdateApp } from './update'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const initUpdate=()=>{
+const initUpdate = () => {
   /**
    * 更新
    */
