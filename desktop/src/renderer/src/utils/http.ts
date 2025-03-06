@@ -1,16 +1,13 @@
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
 const service: AxiosInstance = axios.create({
-  baseURL: '/api',
-  // baseURL: 'http://chat.tecgui.cn',
-  // baseURL: 'http://localhost:9000',
-  // baseURL: 'http://localhost:9066',
+  // baseURL: '/api',
+  baseURL: 'http://localhost:8000',
   withCredentials: true,
   timeout: 5 * 1000,
   headers: {
     Accept: '*',
     'Content-Type': 'application/x-www-form-urlencoded',
-    Authorization: ''
   }
 })
 service.interceptors.request.use((config: InternalAxiosRequestConfig) => {

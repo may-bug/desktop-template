@@ -6,29 +6,32 @@ import { logger } from '../log/log'
 import { exec } from 'child_process'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const netRequest = (options: NetOptions) => {
-  return new Promise((resolve, reject) => {
-    try {
-      let result
-      const request = net.request(options)
-      request.on('response', (response) => {
-        console.log(`STATUS: ${response.statusCode}`)
-        console.log(`HEADERS: ${JSON.stringify(response.headers)}`)
-        result = response
-        response.on('data', (body) => {
-          console.log(`BODY: ${body}`)
-        })
-        response.on('end', () => {
-          console.log('No more data in response.')
-        })
-        resolve(result)
+const netRequest = (option: NetOptions) => {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    const request = net.request(option)
+    let Data = {}
+    request.on('response', (response) => {
+      console.log(`STATUS: ${response.statusCode}`)
+      console.log(`HEADERS: ${JSON.stringify(response.headers)}`)
+      response.on('data', (chunk) => {
+        console.log(`BODY: ${chunk}`)
+        Data = chunk
       })
-      request.end()
-    } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      reject(error)
-    }
+      response.on('end', () => {
+        console.log('No more data in response.')
+        if (response.statusCode !== 200) {
+          reject({
+            response: {
+              status: response.statusCode,
+              data: Data
+            }
+          })
+        }
+        resolve(Data)
+      })
+    })
+    request.end()
   })
 }
 

@@ -42,7 +42,7 @@ export const createNewWindow = (
       sandbox: false,
       nodeIntegration: true,
       contextIsolation: false,
-      webSecurity: true
+      webSecurity: false
     }
   })
 
