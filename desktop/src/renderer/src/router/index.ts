@@ -26,7 +26,15 @@ const routes = [
       title: '主界面'
     },
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    component: () => import('@renderer/views/main/index.vue')
+    component: () => import('@renderer/views/main/index.vue'),
+    children: [
+      {
+        path: '',
+        name: 'main-home',
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        component: () => import('@renderer/views/main/home/index.vue')
+      }
+    ]
   },
   {
     path: '/close',

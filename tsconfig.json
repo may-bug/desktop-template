@@ -1,7 +1,0 @@
-{
-  "files": [
-    "src/tool/**.vue",
-    "src/renderer/**.vue"
-  ],
-  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }]
-}

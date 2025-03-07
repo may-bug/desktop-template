@@ -34,6 +34,7 @@
     "scss": "^0.2.4",
     "sqlite3": "^5.1.7",
     "systeminformation": "^5.25.11",
+    "three": "^0.174.0",
     "vite-plugin-svg-icons": "^2.0.1",
     "vue-hooks-plus": "^2.2.3",
     "vue-router": "^4.5.0"
@@ -43,6 +44,7 @@
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@types/node": "^22.13.4",
+    "@types/three": "^0.174.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "electron": "^34.2.0",
     "electron-builder": "^25.1.8",

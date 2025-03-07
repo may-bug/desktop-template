@@ -5,7 +5,6 @@
     </div>
     <div class="container">
       <Header window-id="main" :is-tips="true"></Header>
-      <a-button @click="getNetInfo">测试</a-button>
       <RouterView />
     </div>
   </div>
@@ -16,7 +15,6 @@ import Header from '@renderer/components/Header.vue'
 import { onMounted } from 'vue'
 import { updateInfo } from '../../utils/update'
 import SideBar from '../../components/SideBar.vue'
-import { getNetInfo } from '../../utils/network'
 
 onMounted(() => {
   updateInfo()

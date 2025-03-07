@@ -36,6 +36,7 @@ export default defineConfig({
     /**
      * @description 开发服务器代理
      */
+    assetsInclude: ['**/*.hdr', '**/*.glb', '**/*.gltf'],
     server: {
       proxy: {
         '/api': {
