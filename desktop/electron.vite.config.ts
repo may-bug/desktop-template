@@ -1,6 +1,6 @@
 import { resolve } from 'path'
 import path from 'path'
-import { bytecodePlugin, defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import { builtinModules } from 'node:module'

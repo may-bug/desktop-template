@@ -1,6 +1,8 @@
 import { app, ipcMain } from 'electron'
 import { shell } from 'electron'
 import { createNewWindow, windowsContainer } from './windows'
+import { logger } from '../log'
+import * as url from 'node:url'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const initWindows = () => {
@@ -95,8 +97,14 @@ const initWindows = () => {
    * 打开外部链接
    */
   ipcMain.on('open-link', (_event, link: string) => {
-    shell.openExternal(link)
+    shell
+      .openExternal(link)
+      .then(() => logger.info({ score: 'sys', value: `open link ${url}` }))
+      .catch((err) =>
+        logger.error({ score: 'sys', value: `open link ${url} cause ${err.message}` })
+      )
   })
+
   /**
    * 退出应用
    */

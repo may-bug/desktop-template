@@ -1,10 +1,10 @@
 {
-  "name": "tecgui",
+  "name": "codelin",
   "version": "1.0.0",
-  "description": "An Electron application with Vue and TypeScript",
+  "description": "Electron-Template with Vue and TypeScript",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "codelin.org",
+  "homepage": "https://codelin.org",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",

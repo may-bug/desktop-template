@@ -53,8 +53,8 @@ app.whenReady().then(async () => {
   /**
    * 设置app信息
    */
-  electronApp.setAppUserModelId('cn.xf-studio')
-  app.setName('讯飞工作室系统')
+  electronApp.setAppUserModelId('org.codelin.desktop')
+  app.setName('codelin')
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
