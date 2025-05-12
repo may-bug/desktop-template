@@ -1,0 +1,12 @@
+node_modules
+dist
+out
+.DS_Store
+.eslintcache
+*.log*
+/log/
+/.arts/
+/.vscode/
+/.editorconfig
+/.idea/.gitignore
+/.idea/*

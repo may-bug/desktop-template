@@ -1,0 +1,56 @@
+appId: cn.tecgui.app.dev
+productName: tecgui
+copyright: Copyright © 2025 TECGUI.CN
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+# 启用 ASAR 打包，将应用文件打包成单个压缩文件以提高安全性
+asar: true
+asarUnpack:
+  - resources/**
+win:
+  executableName: tecgui
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+  allowToChangeInstallationDirectory: true # 允许修改安装路径
+  oneClick: false                          # 禁用一键安装模式
+  perMachine: false                        # 为所有用户安装
+  menuCategory: true                       # 创建开始菜单目录
+#  installerIcon: build/installer/install.ico # 安装程序图标
+#  uninstallerIcon: build/installer/uninstall.ico # 卸载程序图标
+#  include: build/installer/install.nsi   # 自定义安装NSIS脚本路径
+#  license: build/installer/license.txt     # 许可协议文件(可选)
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  notarize: false
+dmg:
+  artifactName: ${name}-${version}.${ext}
+linux:
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: electronjs.org
+  category: Utility
+appImage:
+  artifactName: ${name}-${version}.${ext}
+npmRebuild: false
+publish:
+  provider: generic
+  url: https://example.com/auto-updates
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/
