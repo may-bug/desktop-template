@@ -1,25 +1,28 @@
 package cn.tecgui.desktop.server.config;
 
+import cn.tecgui.desktop.server.handler.SignalingSocketHandler;
+import cn.tecgui.desktop.server.service.SignalingService;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
+// WebSocketConfig.java
 @Configuration
-@EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+@EnableWebSocket
+public class WebSocketConfig implements WebSocketConfigurer {
 
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")           // WebSocket 连接路径
-                .setAllowedOriginPatterns("*") // 允许所有来源（开发环境可用）
-                .withSockJS();                 // 启用 SockJS 支持
+    private final SignalingService signalingService;
+
+    public WebSocketConfig(SignalingService signalingService) {
+        this.signalingService = signalingService;
     }
 
     @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic");  // 订阅目标前缀
-        registry.setApplicationDestinationPrefixes("/app"); // 发送消息到服务端的目标前缀
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(new SignalingSocketHandler(signalingService), "/ws/signaling")
+                .setAllowedOrigins("*")
+                .addInterceptors(new HttpSessionHandshakeInterceptor());
     }
 }

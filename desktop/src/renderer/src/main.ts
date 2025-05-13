@@ -10,9 +10,11 @@ import ArcoVue from '@arco-design/web-vue'
 import '@arco-design/web-vue/dist/arco.css'
 import { router } from './router'
 import { init } from './lib/ininApp'
+import pinia from './stores'
 
 const app = createApp(App)
 app.use(router)
 app.use(ArcoVue)
+app.use(pinia)
 init(app)
 app.mount('#app')

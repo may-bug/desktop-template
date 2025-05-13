@@ -55,6 +55,15 @@ const routes = [
     component: () => import('@renderer/views/about/index.vue')
   },
   {
+    path: '/log',
+    name: 'log',
+    meta: {
+      title: '日志'
+    },
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    component: () => import('@renderer/views/log/index.vue')
+  },
+  {
     path: '/setting',
     name: 'setting',
     meta: {

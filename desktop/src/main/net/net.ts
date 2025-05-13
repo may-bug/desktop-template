@@ -2,7 +2,7 @@ import { NetOptions } from './types'
 import { net } from 'electron'
 import * as os from 'node:os'
 import si from 'systeminformation'
-import { logger } from '../log/log'
+import { logger } from '../log'
 import { exec } from 'child_process'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

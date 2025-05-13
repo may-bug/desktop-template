@@ -23,6 +23,11 @@ const itemList = ref([
     value: 'about'
   },
   {
+    icon: 'menu-log',
+    text: '日志',
+    value: 'log'
+  },
+  {
     icon: 'menu-exit',
     text: '退出登录',
     value: 'exit'
@@ -38,6 +43,9 @@ const handleClick = (value) => {
       break
     case 'about':
       createWindow('about', '关于', 300, 400, '/about', false, undefined)
+      break
+    case 'log':
+      createWindow('log', '关于', 1000, 700, '/log', false, undefined)
       break
     case 'update':
       Message.success('已经是最新版了')

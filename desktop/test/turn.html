@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TURN服务器连接测试</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          line-height: 1.6;
+      }
+      .container {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+      }
+      .server-config {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding: 15px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          background-color: #f9f9f9;
+      }
+      .input-group {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+      }
+      label {
+          font-weight: bold;
+      }
+      input, select {
+          padding: 8px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+      }
+      button {
+          padding: 10px 15px;
+          background-color: #4CAF50;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 16px;
+      }
+      button:hover {
+          background-color: #45a049;
+      }
+      button:disabled {
+          background-color: #cccccc;
+          cursor: not-allowed;
+      }
+      #results {
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          padding: 15px;
+          min-height: 100px;
+          font-family: monospace;
+          white-space: pre-wrap;
+          background-color: #f5f5f5;
+      }
+      .success {
+          color: green;
+      }
+      .error {
+          color: red;
+      }
+      .info {
+          color: blue;
+      }
+  </style>
+</head>
+<body>
+<h1>WebRTC TURN服务器连接测试</h1>
+<div class="container">
+  <div class="server-config">
+    <h2>服务器配置</h2>
+    <div class="input-group">
+      <label for="serverType">服务器类型:</label>
+      <select id="serverType">
+        <option value="turn">TURN</option>
+        <option value="stun">STUN</option>
+        <option value="turns">TURNS (TURN over TLS)</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label for="serverAddress">服务器地址:</label>
+      <input type="text" id="serverAddress" placeholder="turn.example.com" value="">
+    </div>
+    <div class="input-group">
+      <label for="serverPort">端口:</label>
+      <input type="number" id="serverPort" placeholder="3478" value="3478">
+    </div>
+    <div class="input-group">
+      <label for="username">用户名:</label>
+      <input type="text" id="username" placeholder="可选">
+    </div>
+    <div class="input-group">
+      <label for="password">密码/凭证:</label>
+      <input type="password" id="password" placeholder="可选">
+    </div>
+    <div class="input-group">
+      <label for="transport">传输协议:</label>
+      <select id="transport">
+        <option value="udp">UDP</option>
+        <option value="tcp">TCP</option>
+        <option value="tls">TLS</option>
+      </select>
+    </div>
+    <button id="testButton">测试连接</button>
+  </div>
+
+  <div>
+    <h2>测试结果</h2>
+    <div id="results">点击"测试连接"按钮开始测试...</div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('testButton').addEventListener('click', testTurnServer);
+
+  function logToResults(message, className = '') {
+    const resultsDiv = document.getElementById('results');
+    const messageElement = document.createElement('div');
+    messageElement.textContent = message;
+    if (className) {
+      messageElement.className = className;
+    }
+    resultsDiv.appendChild(messageElement);
+    resultsDiv.scrollTop = resultsDiv.scrollHeight;
+  }
+
+  function clearResults() {
+    document.getElementById('results').innerHTML = '';
+  }
+
+  async function testTurnServer() {
+    clearResults();
+    logToResults('开始TURN服务器测试...', 'info');
+
+    const serverType = document.getElementById('serverType').value;
+    const serverAddress = document.getElementById('serverAddress').value.trim();
+    const serverPort = document.getElementById('serverPort').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const transport = document.getElementById('transport').value;
+
+    if (!serverAddress) {
+      logToResults('错误: 请输入服务器地址', 'error');
+      return;
+    }
+
+    const button = document.getElementById('testButton');
+    button.disabled = true;
+    button.textContent = '测试中...';
+
+    try {
+      // 构建ICE服务器配置
+      const iceServer = {
+        urls: `${serverType}:${serverAddress}:${serverPort}?transport=${transport}`,
+      };
+
+      if (username) iceServer.username = username;
+      if (password) iceServer.credential = password;
+
+      logToResults(`使用配置: ${JSON.stringify(iceServer, null, 2)}`, 'info');
+
+      // 创建RTCPeerConnection
+      const pc = new RTCPeerConnection({
+        iceServers: [iceServer],
+        iceCandidatePoolSize: 0
+      });
+
+      // 收集ICE候选
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          logToResults(`发现候选: ${event.candidate.candidate} (类型: ${event.candidate.type})`);
+
+          if (event.candidate.type === 'relay') {
+            logToResults('成功发现中继候选! TURN服务器工作正常。', 'success');
+          }
+        } else {
+          logToResults('ICE候选收集完成', 'info');
+        }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        logToResults(`ICE连接状态: ${pc.iceConnectionState}`);
+      };
+
+      pc.onicegatheringstatechange = () => {
+        logToResults(`ICE收集状态: ${pc.iceGatheringState}`);
+      };
+
+      // 创建数据通道以触发ICE收集
+      pc.createDataChannel('test');
+
+      // 创建offer以开始ICE收集
+      const offer = await pc.createOffer({
+        offerToReceiveAudio: false,
+        offerToReceiveVideo: false
+      });
+
+      await pc.setLocalDescription(offer);
+
+      // 设置超时
+      setTimeout(() => {
+        if (pc.iceGatheringState !== 'complete') {
+          logToResults('警告: ICE收集未在10秒内完成', 'error');
+        }
+      }, 10000);
+
+    } catch (error) {
+      logToResults(`错误: ${error.toString()}`, 'error');
+      console.error(error);
+    } finally {
+      button.disabled = false;
+      button.textContent = '测试连接';
+    }
+  }
+</script>
+</body>
+</html>

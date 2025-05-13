@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { maxWindow, minWindow, resetWindow, closeWindow } from '@renderer/utils/windows'
+import { maxWindow, minWindow, resetWindow, closeWindow } from '../utils/windows'
 import Icon from '@renderer/components/Icon.vue'
 import { createWindow, exitApp, getConfig, hideWindow } from '../utils/windows'
 

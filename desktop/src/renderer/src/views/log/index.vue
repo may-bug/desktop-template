@@ -1,89 +1,150 @@
 <template>
-  <div class="log-viewer">
-    <!-- 过滤控制区 -->
-    <div class="controls">
-      <div class="filter-group">
-        <label for="log-level">日志级别：</label>
-        <select id="log-level" v-model="queryParams.type" @change="refreshLogs">
-          <option value="">全部</option>
-          <option v-for="level in availableLevels" :key="level" :value="level">
+  <Header window-id="log" window-title="日志" :is-resize="true"></Header>
+  <a-card class="log-container" :bordered="false">
+    <div class="header">
+      <a-space size="large">
+        <a-typography-title :heading="6">操作日志</a-typography-title>
+        <a-space>
+          <a-button :loading="loading" @click="handleRefresh">
+            <template #icon>
+              <icon-refresh />
+            </template>
+            刷新
+          </a-button>
+          <a-button type="primary" @click="handleExport">
+            <template #icon>
+              <icon-download />
+            </template>
+            导出日志
+          </a-button>
+        </a-space>
+      </a-space>
+    </div>
+
+    <!-- 筛选表单 -->
+    <a-form :model="queryParams" layout="inline" class="filter-form">
+      <a-form-item label="日志级别">
+        <a-select
+          v-model="queryParams.type"
+          placeholder="请选择日志级别"
+          allow-clear
+          style="width: 180px"
+        >
+          <a-option v-for="level in logLevels" :key="level" :value="level">
             {{ level }}
-          </option>
-        </select>
-      </div>
+          </a-option>
+        </a-select>
+      </a-form-item>
 
-      <div class="filter-group">
-        <label>时间范围：</label>
-        <input v-model="startTimeStr" type="datetime-local" @change="handleDateChange" />
-        <span class="separator">至</span>
-        <input v-model="endTimeStr" type="datetime-local" @change="handleDateChange" />
-      </div>
+      <a-form-item label="时间范围">
+        <a-range-picker
+          v-model="dateRange"
+          show-time
+          style="width: 320px"
+          @change="handleDateChange"
+        />
+      </a-form-item>
 
-      <div class="filter-group">
-        <button :disabled="loading" @click="toggleSort">
-          {{ sortButtonText }}
-        </button>
-      </div>
+      <a-form-item label="日志内容">
+        <a-input-search
+          v-model="queryParams.keyword"
+          placeholder="请输入搜索内容"
+          allow-clear
+          style="width: 240px"
+          @search="handleSearch"
+        />
+      </a-form-item>
 
-      <div class="filter-group">
-        <label for="page-size">每页显示：</label>
-        <select id="page-size" v-model="queryParams.size" @change="refreshLogs">
-          <option value="20">20条</option>
-          <option value="50">50条</option>
-          <option value="100">100条</option>
-        </select>
-      </div>
+      <a-form-item>
+        <a-button type="primary" @click="fetchLogs">
+          <template #icon>
+            <icon-search />
+          </template>
+          查询
+        </a-button>
+      </a-form-item>
+    </a-form>
 
-      <button class="refresh-btn" :disabled="loading" @click="refreshLogs">
-        <span v-if="!loading">刷新</span>
-        <span v-else class="spinner"></span>
-      </button>
-    </div>
+    <!-- 日志表格 -->
+    <a-table
+      :columns="columns"
+      :data="logData"
+      :pagination="pagination"
+      :loading="loading"
+      row-key="raw"
+      style="margin-top: 16px"
+      @page-change="handlePageChange"
+      @page-size-change="handlePageSizeChange"
+    >
+      <template #level="{ record }">
+        <a-tag :color="getLevelColor(record.level)">
+          {{ record.level.toUpperCase() }}
+        </a-tag>
+      </template>
 
-    <!-- 日志内容区 -->
-    <div class="log-content">
-      <div v-if="loading" class="loading-indicator">
-        <div class="spinner"></div>
-        <span>加载中...</span>
-      </div>
+      <template #timestamp="{ record }">
+        {{ formatDate(record.timestamp) }}
+      </template>
 
-      <div v-else-if="logs.length === 0" class="empty-message">没有找到匹配的日志</div>
-
-      <div v-else class="log-entries">
-        <div v-for="(log, index) in logs" :key="index" class="log-entry" :class="log.level">
-          <div class="log-meta">
-            <span class="timestamp">{{ formatDateTime(log.timestamp) }}</span>
-            <span class="level-badge" :class="log.level">{{ log.level }}</span>
-            <span v-if="log.scope" class="scope">{{ log.scope }}</span>
-          </div>
-          <div class="message">{{ log.message }}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 分页控制 -->
-    <div v-if="total > 0" class="pagination">
-      <button :disabled="queryParams.page <= 1 || loading" @click="prevPage">上一页</button>
-      <span class="page-info">
-        第 {{ queryParams.page }} 页 / 共 {{ totalPages }} 页 (共 {{ total }} 条)
-      </span>
-      <button :disabled="queryParams.page >= totalPages || loading" @click="nextPage">
-        下一页
-      </button>
-    </div>
-  </div>
+      <template #scope="{ record }">
+        {{ record.scope || '-' }}
+      </template>
+    </a-table>
+  </a-card>
 </template>
 
-<script lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { readLogs, getLogLevels, type LogEntry, type LogQueryParams } from '../../utils/log'
-// 响应式数据
-const logs = ref<LogEntry[]>([])
-const total = ref(0)
-const availableLevels = ref<string[]>([])
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { Message, PaginationProps, TableColumnData } from '@arco-design/web-vue'
+import { getLogLevels, type LogEntry, type LogQueryParams, readLogs } from '../../utils/log/reader'
+import dayjs from 'dayjs'
+import Header from '../../components/Header.vue'
+import { logger } from '../../utils/log'
+
+// 表格列定义
+const columns: TableColumnData[] = [
+  {
+    title: '时间',
+    dataIndex: 'timestamp',
+    slotName: 'timestamp',
+    width: 180,
+    sortable: {
+      sortDirections: ['ascend', 'descend']
+    }
+  },
+  {
+    title: '级别',
+    dataIndex: 'level',
+    slotName: 'level',
+    width: 100,
+    filterable: {
+      filters: [
+        { text: 'INFO', value: 'info' },
+        { text: 'WARN', value: 'warn' },
+        { text: 'ERROR', value: 'error' }
+      ],
+      filter: (value, row) => row.level === value
+    }
+  },
+  {
+    title: '模块',
+    dataIndex: 'scope',
+    slotName: 'scope',
+    width: 150
+  },
+  {
+    title: '内容',
+    dataIndex: 'message',
+    ellipsis: true,
+    tooltip: true
+  }
+]
+
+// 状态管理
 const loading = ref(false)
-const startTimeStr = ref('')
-const endTimeStr = ref('')
+const logData = ref<LogEntry[]>([])
+const logLevels = ref<string[]>([])
+const dateRange = ref<string[]>([])
 
 // 查询参数
 const queryParams = ref<LogQueryParams>({
@@ -92,83 +153,116 @@ const queryParams = ref<LogQueryParams>({
   sort: 'desc'
 })
 
-// 计算属性
-const totalPages = computed(() => Math.ceil(total.value / queryParams.value.size))
-const sortButtonText = computed(() =>
-  queryParams.value.sort === 'desc' ? '最新优先 ↓' : '最旧优先 ↑'
-)
+// 分页信息
+const pagination = ref<PaginationProps>({
+  current: 1,
+  pageSize: 20,
+  total: 0,
+  showTotal: true,
+  showJumper: true,
+  showPageSize: true
+})
 
-// 方法
-const formatDateTime = (date: Date): string => {
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
+// 获取日志级别
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const fetchLogLevels = async () => {
+  try {
+    logLevels.value = await getLogLevels()
+  } catch (error) {
+    Message.error('获取日志级别失败')
+    logger.error('info', 'log', `获取日志级别失败 cause ${error.message}`)
+  }
 }
 
+// 获取日志数据
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const fetchLogs = async () => {
   loading.value = true
   try {
-    const result = await readLogs(queryParams.value)
-    logs.value = result.logs
-    total.value = result.total
+    const { logs, total, page, size } = await readLogs(queryParams.value)
+    logData.value = logs
+    pagination.value = {
+      ...pagination.value,
+      current: page,
+      pageSize: size,
+      total
+    }
   } catch (error) {
-    console.error('获取日志失败:', error)
-    logs.value = []
-    total.value = 0
+    Message.error('获取日志级别失败')
+    logger('info', 'log', `获取日志级别失败 cause ${error.message}`)
   } finally {
     loading.value = false
   }
 }
 
+// 日期变化处理
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const fetchLogLevels = async () => {
-  try {
-    availableLevels.value = await getLogLevels()
-  } catch (error) {
-    console.error('获取日志级别失败:', error)
-    availableLevels.value = []
+const handleDateChange = (dates: string[]) => {
+  if (dates && dates.length === 2) {
+    queryParams.value.startDateTime = new Date(dates[0])
+    queryParams.value.endDateTime = new Date(dates[1])
+  } else {
+    queryParams.value.startDateTime = undefined
+    queryParams.value.endDateTime = undefined
   }
 }
 
+// 页码变化
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const refreshLogs = () => {
+const handlePageChange = (page: number) => {
+  queryParams.value.page = page
+  fetchLogs()
+}
+
+// 每页条数变化
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const handlePageSizeChange = (size: number) => {
+  queryParams.value.size = size
   queryParams.value.page = 1
   fetchLogs()
 }
 
+// 搜索处理
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const toggleSort = () => {
-  queryParams.value.sort = queryParams.value.sort === 'desc' ? 'asc' : 'desc'
-  refreshLogs()
+const handleSearch = () => {
+  queryParams.value.page = 1
+  fetchLogs()
 }
 
+// 刷新
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const handleDateChange = () => {
-  queryParams.value.startDateTime = startTimeStr.value ? new Date(startTimeStr.value) : undefined
-  queryParams.value.endDateTime = endTimeStr.value ? new Date(endTimeStr.value) : undefined
-  refreshLogs()
+const handleRefresh = () => {
+  fetchLogs()
+  fetchLogLevels()
 }
 
+// 导出日志
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const nextPage = () => {
-  if (queryParams.value.page < totalPages.value) {
-    queryParams.value.page++
-    fetchLogs()
+const handleExport = () => {
+  Message.info('导出功能待实现')
+  Message.error('获取日志级别失败')
+  logger('info', 'log', `获取日志级别失败`)
+}
+
+// 根据日志级别获取颜色
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const getLevelColor = (level: string) => {
+  switch (level.toLowerCase()) {
+    case 'error':
+      return 'red'
+    case 'warn':
+      return 'orange'
+    case 'info':
+      return 'blue'
+    default:
+      return 'gray'
   }
 }
 
+// 格式化日期
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const prevPage = () => {
-  if (queryParams.value.page > 1) {
-    queryParams.value.page--
-    fetchLogs()
-  }
+const formatDate = (date: Date) => {
+  return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
 
 // 初始化
@@ -179,227 +273,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.log-viewer {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f5f7fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: #ffffff;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-label {
-  font-size: 14px;
-  color: #4a5568;
-  font-weight: 500;
-}
-
-select,
-input[type='datetime-local'] {
-  padding: 8px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: #fff;
-  transition: border-color 0.2s;
-}
-
-select:focus,
-input[type='datetime-local']:focus {
-  outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-}
-
-.separator {
-  color: #718096;
-  padding: 0 5px;
-}
-
-button {
-  padding: 8px 16px;
-  background-color: #4299e1;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 80px;
-}
-
-button:hover:not(:disabled) {
-  background-color: #3182ce;
-}
-
-button:disabled {
-  background-color: #a0aec0;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.refresh-btn {
-  background-color: #48bb78;
-  margin-left: auto;
-}
-
-.refresh-btn:hover:not(:disabled) {
-  background-color: #38a169;
-}
-
-.spinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #fff;
-  animation: spin 1s ease-in-out infinite;
-  margin-right: 8px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  color: #4a5568;
-}
-
-.empty-message {
-  text-align: center;
-  padding: 40px;
-  color: #718096;
-  font-size: 16px;
-}
-
-.log-content {
-  background-color: #ffffff;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  min-height: 400px;
-  margin-bottom: 20px;
-}
-
-.log-entries {
+.log-container {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 15px;
 }
 
-.log-entry {
-  padding: 12px 15px;
-  border-radius: 6px;
-  background-color: #ffffff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  border-left: 4px solid #a0aec0;
-}
-
-.log-entry .error {
-  border-left-color: #f56565;
-  background-color: #fff5f5;
-}
-
-.log-entry .warn {
-  border-left-color: #f6ad55;
-  background-color: #fffaf0;
-}
-
-.log-entry .info {
-  border-left-color: #4299e1;
-  background-color: #ebf8ff;
-}
-
-.log-meta {
+.header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-  font-size: 13px;
-  color: #4a5568;
+  margin-bottom: 16px;
 }
 
-.timestamp {
-  color: #718096;
-}
-
-.level-badge {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.level-badge.error {
-  background-color: #fed7d7;
-  color: #c53030;
-}
-
-.level-badge.warn {
-  background-color: #feebc8;
-  color: #b7791f;
-}
-
-.level-badge.info {
-  background-color: #bee3f8;
-  color: #2b6cb0;
-}
-
-.scope {
-  color: #718096;
-  font-style: italic;
-}
-
-.message {
-  font-size: 14px;
-  line-height: 1.5;
-  color: #2d3748;
-  word-break: break-word;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  padding: 15px;
-  background-color: #ffffff;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.page-info {
-  color: #4a5568;
-  font-size: 14px;
+.filter-form {
+  margin-bottom: 16px;
 }
 </style>

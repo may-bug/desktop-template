@@ -1,8 +1,8 @@
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
 const service: AxiosInstance = axios.create({
-  // baseURL: '/api',
-  baseURL: 'http://localhost:8000',
+  baseURL: '/api',
+  // baseURL: 'http://localhost:8000',
   withCredentials: true,
   timeout: 5 * 1000,
   headers: {

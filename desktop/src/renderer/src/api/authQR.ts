@@ -7,7 +7,7 @@ import { http } from '../utils/http'
 export const getUidAPI = () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  return http.get('/user/qr/generateUid')
+  return http.get('/account/qr/generateUid')
 }
 
 /**
@@ -17,7 +17,7 @@ export const getUidAPI = () => {
 export const getQrAPI = (data) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  return http.get('/user/qr/generateQr', data)
+  return http.get('/account/qr/generateQr', data)
 }
 
 /**
@@ -27,5 +27,5 @@ export const getQrAPI = (data) => {
 export const qrPollingAPI = (data) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  return http.get('/user/qr/polling', data)
+  return http.get('/account/qr/polling', data)
 }
