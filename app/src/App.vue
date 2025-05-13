@@ -1,5 +1,14 @@
 <template>
-  <RouterView></RouterView>
+  <van-config-provider theme="light">
+    <router-view v-slot="{ Component, route }">
+      <transition
+          :name="`page-${route.meta.transition || ''}`"
+          mode="out-in"
+      >
+        <component :is="Component" :key="route.path" />
+      </transition>
+    </router-view>
+  </van-config-provider>
 </template>
 
 <script setup lang="ts">
@@ -8,7 +17,6 @@ import {inject, onMounted} from "vue";
 
 onMounted(()=>{
   const themeChange=inject("theme")
-  console.log(themeChange)
   themeChange("dark")
 })
 </script>

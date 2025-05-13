@@ -2,6 +2,8 @@
 //@ts-nocheck
 import {inject, ref} from "vue";
 import { invoke } from "@tauri-apps/api/core";
+import MoreMenu from "../../../components/menu/MoreMenu.vue";
+import VideoChat from "../../../components/video/VideoChat.vue";
 
 const greetMsg = ref("");
 const name = ref("");
@@ -14,10 +16,14 @@ const themeChange=inject("theme")
 </script>
 
 <template>
-  <main class="container">
-    <h1>Welcome to Tauri + Vue</h1>
-    <button @click="themeChange('light')">Greet</button>
-  </main>
+  <section id="home">
+    <van-nav-bar title="CodeLin" left-disabled>
+      <template #right>
+        <MoreMenu></MoreMenu>
+      </template>
+    </van-nav-bar>
+    <VideoChat user-id="1234"></VideoChat>
+  </section>
 </template>
 
 <style scoped>

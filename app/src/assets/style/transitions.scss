@@ -1,0 +1,35 @@
+/* 页面过渡动画 */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+}
+
+/* 前进进入 */
+.page-forward-enter-from {
+  transform: translateX(100%);
+  opacity: 0.9;
+}
+
+/* 前进离开 */
+.page-forward-leave-to {
+  transform: translateX(-30%);
+  opacity: 0.8;
+}
+
+/* 后退进入 */
+.page-backward-enter-from {
+  transform: translateX(-30%);
+  opacity: 0.8;
+}
+
+/* 后退离开 */
+.page-backward-leave-to {
+  transform: translateX(100%);
+  opacity: 0.9;
+}
