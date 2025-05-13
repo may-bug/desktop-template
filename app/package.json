@@ -19,7 +19,6 @@
     "@tauri-apps/plugin-os": "~2.2.1",
     "@tauri-apps/plugin-sql": "~2.2.0",
     "@tauri-apps/plugin-store": "~2.2.0",
-    "@tauri-apps/plugin-stronghold": "~2.2.0",
     "@tauri-apps/plugin-upload": "~2.2.1",
     "axios": "^1.9.0",
     "pinia": "^3.0.2",
