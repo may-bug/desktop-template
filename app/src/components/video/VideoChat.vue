@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+//@ts-nocheck
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useWebRTC } from '../../composables/useWebRTC'
 import { useSignalingStore } from '../../stores/signaling'

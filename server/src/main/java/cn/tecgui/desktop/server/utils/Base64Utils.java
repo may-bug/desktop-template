@@ -5,7 +5,6 @@ import org.apache.tomcat.util.codec.binary.Base64;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
 
 public class Base64Utils {
 

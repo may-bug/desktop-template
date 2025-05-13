@@ -2,8 +2,7 @@ package cn.tecgui.desktop.server.service;
 
 import cn.tecgui.desktop.server.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -11,10 +10,9 @@ import org.springframework.web.socket.WebSocketSession;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class SignalingService {
-
-    private static final Logger logger = LoggerFactory.getLogger(SignalingService.class);
     private final RoomService roomService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -58,7 +56,7 @@ public class SignalingService {
                     try {
                         u.getSession().sendMessage(new TextMessage(message));
                     } catch (IOException e) {
-                        logger.error("Error notifying peer joined: {}", e.getMessage());
+                        log.error("Error notifying peer joined: {}", e.getMessage());
                     }
                 });
     }
@@ -100,7 +98,7 @@ public class SignalingService {
                 notifyPeerLeft(room, session);
             }
         } catch (Exception e) {
-            logger.error("Error leaving room: {}", e.getMessage());
+            log.error("Error leaving room: {}", e.getMessage());
         }
     }
 
@@ -116,7 +114,7 @@ public class SignalingService {
                             new TextMessage(objectMapper.writeValueAsString(leaveMessage)));
                 }
             } catch (IOException e) {
-                logger.error("Error notifying peer left: {}", e.getMessage());
+                log.error("Error notifying peer left: {}", e.getMessage());
             }
         });
     }

@@ -26,7 +26,7 @@
             plain
             type="primary"
             size="small"
-            @click="openAppSettings"
+            @click="openAppSetting"
         >
           打开应用设置
         </van-button>
@@ -108,7 +108,7 @@ const requestCameraPermission = async () => {
 };
 
 // 打开应用设置
-const openAppSettings = async () => {
+const openAppSetting = async () => {
   try {
     await openAppSettings();
   } catch (error) {

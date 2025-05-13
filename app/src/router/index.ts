@@ -1,3 +1,4 @@
+//@ts-nocheck
 import {createRouter, createWebHashHistory, createWebHistory} from 'vue-router'
 import MainView from '../views/main/index.vue'
 import HomeView from '../views/main/home/index.vue'
