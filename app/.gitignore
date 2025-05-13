@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+src-tauri/gen/android/release-key.jks
+src-tauri/gen/android/keystore.properties
