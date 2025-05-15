@@ -43,3 +43,4 @@ sa-token:
   is-print: true
   # jwt秘钥
   jwt-secret-key: asdasdasifhueuiwyurfewbfjsdafjk
+  is-read-cookie: false

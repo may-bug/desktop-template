@@ -1,121 +1,205 @@
 package cn.tecgui.desktop.server.service;
 
-import cn.tecgui.desktop.server.model.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import cn.tecgui.desktop.server.model.data.SignalMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
-import java.io.IOException;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 public class SignalingService {
-    private final RoomService roomService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public SignalingService(RoomService roomService) {
-        this.roomService = roomService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final Set<String> activeUsers = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<String, SignalMessage> pendingCalls = new ConcurrentHashMap<>();
+
+    public SignalingService(SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
     }
 
-    public void joinRoom(String roomId, String userId, WebSocketSession session) throws IOException {
-        UserSession userSession = new UserSession(userId, session);
-        Room room = roomService.joinRoom(roomId, userSession);
+    public void handleSignal(SignalMessage message) {
+        log.info("Processing signal type: {} from {} to {}",
+                message.getType(), message.getSender(), message.getReceiver());
 
-        // 通知新用户房间信息
-        sendRoomInfo(room, userSession);
-
-        // 通知其他用户有新用户加入
-        notifyPeerJoined(room, userSession);
-    }
-
-    private void sendRoomInfo(Room room, UserSession userSession) throws IOException {
-        RoomInfo roomInfo = new RoomInfo();
-        roomInfo.setType("room-info");
-        roomInfo.setRoomId(room.getId());
-        roomInfo.setUsers(room.getUsers().stream()
-                .filter(u -> !u.getUserId().equals(userSession.getUserId()))
-                .map(UserInfo::new)
-                .collect(Collectors.toList()));
-        userSession.getSession().sendMessage(
-                new TextMessage(objectMapper.writeValueAsString(roomInfo)));
-    }
-
-    private void notifyPeerJoined(Room room, UserSession newUser) throws IOException {
-        Message joinMessage = new Message();
-        joinMessage.setType("peer-joined");
-        joinMessage.setFrom(newUser.getUserId());
-
-        String message = objectMapper.writeValueAsString(joinMessage);
-
-        room.getUsers().stream()
-                .filter(u -> !u.getUserId().equals(newUser.getUserId()))
-                .forEach(u -> {
-                    try {
-                        u.getSession().sendMessage(new TextMessage(message));
-                    } catch (IOException e) {
-                        log.error("Error notifying peer joined: {}", e.getMessage());
-                    }
-                });
-    }
-
-    public void sendOffer(SdpMessage offerMsg) throws IOException {
-        Room room = roomService.getRoom(offerMsg.getRoomId());
-        UserSession targetUser = room.getUser(offerMsg.getTo());
-
-        if (targetUser != null) {
-            targetUser.getSession().sendMessage(
-                    new TextMessage(objectMapper.writeValueAsString(offerMsg)));
+        switch (message.getType()) {
+            case "join":
+                handleJoin(message);
+                break;
+            case "leave":
+                handleLeave(message);
+                break;
+            case "offer":
+                handleOffer(message);
+                break;
+            case "answer":
+                handleAnswer(message);
+                break;
+            case "candidate":
+                forwardIceCandidate(message);
+                break;
+            case "accept":
+                handleAccept(message);
+                break;
+            case "reject":
+                handleReject(message);
+                break;
+            case "call-ended":
+                handleCallEnded(message);
+                break;
+            default:
+                log.warn("Unknown signal type: {}", message.getType());
         }
     }
 
-    public void sendAnswer(SdpMessage answerMsg) throws IOException {
-        Room room = roomService.getRoom(answerMsg.getRoomId());
-        UserSession targetUser = room.getUser(answerMsg.getTo());
+    private void handleJoin(SignalMessage message) {
+        String userId = message.getSender();
+        activeUsers.add(userId);
+        log.info("User {} joined. Active users: {}", userId, activeUsers);
 
-        if (targetUser != null) {
-            targetUser.getSession().sendMessage(
-                    new TextMessage(objectMapper.writeValueAsString(answerMsg)));
-        }
+        messagingTemplate.convertAndSend("/topic/users", activeUsers);
     }
 
-    public void sendIceCandidate(IceCandidateMessage iceMsg) throws IOException {
-        Room room = roomService.getRoom(iceMsg.getRoomId());
-        UserSession targetUser = room.getUser(iceMsg.getTo());
+    private void handleLeave(SignalMessage message) {
+        String userId = message.getSender();
+        activeUsers.remove(userId);
+        pendingCalls.remove(userId);
+        log.info("User {} left. Active users: {}", userId, activeUsers);
 
-        if (targetUser != null) {
-            targetUser.getSession().sendMessage(
-                    new TextMessage(objectMapper.writeValueAsString(iceMsg)));
-        }
+        messagingTemplate.convertAndSend("/topic/users", activeUsers);
     }
 
-    public void leaveRoom(WebSocketSession session) {
-        try {
-            Room room = roomService.leaveRoom(session);
-            if (room != null) {
-                notifyPeerLeft(room, session);
-            }
-        } catch (Exception e) {
-            log.error("Error leaving room: {}", e.getMessage());
+    // 在 SignalingService.java 中添加调试日志
+    private void handleOffer(SignalMessage message) {
+        log.info("处理offer - 发送方: {}, 接收方: {}, 类型: {}",
+                message.getSender(), message.getReceiver(), message.getData().get("callType"));
+
+        // 检查接收方是否在线
+        if (!activeUsers.contains(message.getReceiver())) {
+            log.warn("接收方 {} 不在线", message.getReceiver());
+            sendReject(message.getSender(), message.getReceiver(), "user-offline");
+            return;
         }
+
+        // 存储通话请求
+        pendingCalls.put(message.getReceiver(), message);
+
+        // 构建通话请求消息
+        SignalMessage request = new SignalMessage();
+        request.setType("call-request");
+        request.setSender(message.getSender());
+        request.setReceiver(message.getReceiver());
+        request.setData(Map.of(
+                "callType", message.getData().get("callType"),
+                "timestamp", System.currentTimeMillis()
+        ));
+
+        log.info("准备发送call-request到 {}", message.getReceiver());
+        messagingTemplate.convertAndSendToUser(
+                message.getReceiver(),
+                "/queue/call-request",
+                request
+        );
     }
 
-    private void notifyPeerLeft(Room room, WebSocketSession leftSession) {
-        room.getUsers().forEach(u -> {
-            try {
-                if (!u.getSession().getId().equals(leftSession.getId())) {
-                    Message leaveMessage = new Message();
-                    leaveMessage.setType("peer-left");
-                    leaveMessage.setFrom(room.getUserBySession(leftSession).getUserId());
+    private void handleAnswer(SignalMessage message) {
+        // 转发answer前检查是否存在对应的offer
+        SignalMessage originalOffer = pendingCalls.get(message.getSender());
+        if (originalOffer == null || !originalOffer.getSender().equals(message.getReceiver())) {
+            sendReject(message.getSender(), message.getReceiver(), "no-pending-call");
+            return;
+        }
 
-                    u.getSession().sendMessage(
-                            new TextMessage(objectMapper.writeValueAsString(leaveMessage)));
-                }
-            } catch (IOException e) {
-                log.error("Error notifying peer left: {}", e.getMessage());
-            }
-        });
+        forwardSessionDescription(message);
+        pendingCalls.remove(message.getSender());
+    }
+
+    private void handleAccept(SignalMessage message) {
+        SignalMessage offer = pendingCalls.get(message.getSender());
+        if (offer == null) {
+            sendReject(message.getSender(), message.getReceiver(), "no-pending-call");
+            return;
+        }
+
+        // 通知发起方通话被接受
+        messagingTemplate.convertAndSendToUser(
+                message.getReceiver(),
+                "/queue/call-accepted",
+                Map.of(
+                        "sender", message.getSender(),
+                        "timestamp", System.currentTimeMillis()
+                )
+        );
+
+        pendingCalls.remove(message.getSender());
+    }
+
+    private void handleReject(SignalMessage message) {
+        pendingCalls.remove(message.getSender());
+        forwardReject(message);
+    }
+
+    private void handleCallEnded(SignalMessage message) {
+        // 清理任何可能存在的待处理请求
+        pendingCalls.entrySet().removeIf(entry ->
+                entry.getValue().getSender().equals(message.getSender()) ||
+                        entry.getValue().getReceiver().equals(message.getSender())
+        );
+
+        forwardCallEnded(message);
+    }
+
+    private void forwardSessionDescription(SignalMessage message) {
+        String receiver = message.getReceiver();
+        log.debug("Forwarding session description to {}", receiver);
+        messagingTemplate.convertAndSendToUser(
+                receiver,
+                "/queue/signal",
+                message
+        );
+    }
+
+    private void forwardIceCandidate(SignalMessage message) {
+        String receiver = message.getReceiver();
+        messagingTemplate.convertAndSendToUser(
+                receiver,
+                "/queue/signal",
+                message
+        );
+    }
+
+    private void forwardReject(SignalMessage message) {
+        String receiver = message.getReceiver();
+        messagingTemplate.convertAndSendToUser(
+                receiver,
+                "/queue/call-rejected",
+                message
+        );
+    }
+
+    private void forwardCallEnded(SignalMessage message) {
+        String receiver = message.getReceiver();
+        messagingTemplate.convertAndSendToUser(
+                receiver,
+                "/queue/call-ended",
+                message
+        );
+    }
+
+    private void sendReject(String sender, String receiver, String reason) {
+        SignalMessage reject = new SignalMessage();
+        reject.setType("reject");
+        reject.setSender(sender);
+        reject.setReceiver(receiver);
+        reject.setData(Map.of("reason", reason));
+        forwardReject(reject);
+    }
+
+    public Set<String> getActiveUsers() {
+        return new HashSet<>(activeUsers);
     }
 }

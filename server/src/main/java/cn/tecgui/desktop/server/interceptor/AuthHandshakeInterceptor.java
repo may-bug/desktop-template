@@ -1,5 +1,6 @@
 package cn.tecgui.desktop.server.interceptor;
 
+import cn.dev33.satoken.stp.StpUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -7,6 +8,7 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class AuthHandshakeInterceptor implements HandshakeInterceptor {
@@ -20,9 +22,6 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
 
             // 1. 从请求参数中获取token
             String token = servletRequest.getServletRequest().getParameter("token");
-
-            // 2. 或者从header中获取
-            // String token = servletRequest.getServletRequest().getHeader("Authorization");
 
             // 3. 验证token逻辑
             if (!isValidToken(token)) {
@@ -44,13 +43,13 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
     }
 
     private boolean isValidToken(String token) {
-        // 实现你的token验证逻辑
-        // 例如JWT验证、数据库查询等
-        return token != null && !token.isEmpty(); // 示例简单验证
+        if(token == null || token.isEmpty()) return false;
+        return StpUtil.getLoginId(token) != null;
     }
 
-    private Object getUserFromToken(String token) {
+    private Map<String,Object> getUserFromToken(String token) {
         // 从token中解析用户信息
-        return "user-info"; // 示例返回
+        Map<String,Object> result = new HashMap<>();
+        return result; // 示例返回
     }
 }

@@ -11,13 +11,24 @@ import { initStore } from './store'
 import { initSqlite } from './sqlite'
 import { initLog } from './log'
 import { initFile } from './file'
+import { initUpdate } from './update'
+import { initNet } from './net'
+import { initPermissionHandler } from './permission'
+import { initScreen } from './screen'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import { store } from './store'
-import { initUpdate } from './update'
-import { initNet } from './net'
+import { initClipboard } from './clipboard'
 
 app.whenReady().then(async () => {
+  /**
+   * 注册权限请求
+   */
+  initPermissionHandler()
+  /**
+   * 创建数据库
+   */
+  await initSqlite()
   /**
    * 创建菜单托盘
    */
@@ -30,10 +41,6 @@ app.whenReady().then(async () => {
    * 初始化进程间通信操作
    */
   initWindows()
-  /**
-   * 创建数据库
-   */
-  await initSqlite()
   /**
    * 初始化文件操作
    */
@@ -50,6 +57,14 @@ app.whenReady().then(async () => {
    * 初始化更新
    */
   initNet()
+  /**
+   * 剪贴板
+   */
+  initClipboard()
+  /**
+   * 初始化桌面捕捉
+   */
+  initScreen()
   /**
    * 设置app信息
    */

@@ -40,7 +40,7 @@ export default defineConfig({
     server: {
       proxy: {
         '/api': {
-          target: 'http://localhost:8080',
+          target: 'https://server.tecgui.cn',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, '')
         }
@@ -48,7 +48,7 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        external: ['electron', 'sqlite3', ...builtinModules]
+        external: ['node', 'electron', 'sqlite3', ...builtinModules]
       }
     }
   }

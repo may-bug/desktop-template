@@ -26,13 +26,13 @@ const handleSubmit = (e) => {
 
 <template>
   <div class="login-container">
-    <form class="login-form" @submit.prevent="handleSubmit">
-      <input v-model="loginForm.account" />
-      <input v-model="loginForm.password" type="password" />
-      <button class="start" type="submit">开始</button>
-    </form>
+    <a-form class="login-form" @submit.prevent="handleSubmit">
+      <a-input v-model="loginForm.account" />
+      <a-input v-model="loginForm.password" type="password" />
+      <a-button class="start">开始</a-button>
+    </a-form>
     <div class="btn-container">
-      <button class="start" @click="props.open">登录</button>
+      <a-button class="start" @click="props.open">登录</a-button>
     </div>
   </div>
 </template>
@@ -43,15 +43,5 @@ const handleSubmit = (e) => {
   width: 100%;
   display: flex;
   justify-content: center;
-  .start {
-    border-radius: 25px;
-    border: none;
-    padding: 5px 15px;
-    margin: auto;
-    width: 60%;
-    height: 12%;
-    background: var(--color-primary);
-    color: var(--text-color-primary);
-  }
 }
 </style>

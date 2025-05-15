@@ -19,12 +19,12 @@ import java.util.Set;
 public class DataSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final DataService dataService;
-    private final RateLimiter rateLimiter;
+//    private final RateLimiter rateLimiter;
     private final SensitiveWordFilter sensitiveWordFilter;
 
-    public DataSocketHandler(DataService dataService, RateLimiter rateLimiter, SensitiveWordFilter filter) {
+    public DataSocketHandler(DataService dataService, SensitiveWordFilter filter) {
         this.dataService = dataService;
-        this.rateLimiter = rateLimiter;
+//        this.rateLimiter = rateLimiter;
         this.sensitiveWordFilter = filter;
     }
 
@@ -39,10 +39,10 @@ public class DataSocketHandler extends TextWebSocketHandler {
         // 记录最后活动时间
         session.getAttributes().put("lastActivity", System.currentTimeMillis());
         DataService.UserInfo userInfo = dataService.getUserInfo(session.getId());
-        if (userInfo == null || !rateLimiter.allowMessage(userInfo.getUserId())) {
-            session.sendMessage(new TextMessage("{\"error\":\"Message rate limit exceeded\"}"));
-            return;
-        }
+//        if (userInfo == null || !rateLimiter.allowMessage(userInfo.getUserId())) {
+//            session.sendMessage(new TextMessage("{\"error\":\"Message rate limit exceeded\"}"));
+//            return;
+//        }
         try {
             JsonNode root = objectMapper.readTree(message.getPayload());
             String type = root.path("type").asText();
@@ -62,7 +62,7 @@ public class DataSocketHandler extends TextWebSocketHandler {
                 case "ice-candidate":
                     handleIceCandidate(session, root, roomId, userId);
                     break;
-                case "message": // 群聊消息
+                case "message":
                     handleGroupMessage(session, root, roomId, userId);
                     break;
                 default:
@@ -76,8 +76,6 @@ public class DataSocketHandler extends TextWebSocketHandler {
 
     private void handleJoin(WebSocketSession session, String roomId, String userId) throws Exception, PermissionDeniedException {
         dataService.joinRoom(roomId, userId, session);
-
-        // 通知房间内的其他用户有新用户加入
         ObjectNode node = objectMapper.createObjectNode();
         node.put("type", "new-peer");
         node.put("userId", userId);
