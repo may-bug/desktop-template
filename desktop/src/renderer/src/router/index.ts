@@ -64,6 +64,24 @@ const routes = [
     component: () => import('@renderer/views/log/index.vue')
   },
   {
+    path: '/float',
+    name: 'float',
+    meta: {
+      title: '悬浮球'
+    },
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    component: () => import('@renderer/views/float/index.vue')
+  },
+  {
+    path: '/toolbar',
+    name: 'toolbar',
+    meta: {
+      title: '工具栏'
+    },
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    component: () => import('@renderer/views/toolbar/index.vue')
+  },
+  {
     path: '/setting',
     name: 'setting',
     meta: {

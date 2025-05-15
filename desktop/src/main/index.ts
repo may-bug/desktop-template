@@ -20,6 +20,10 @@ import { initScreen } from './screen'
 import { store } from './store'
 import { initClipboard } from './clipboard'
 
+/**
+ * 开启进程沙盒化
+ */
+app.enableSandbox()
 app.whenReady().then(async () => {
   /**
    * 注册权限请求

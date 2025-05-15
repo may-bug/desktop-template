@@ -98,6 +98,8 @@ const clickOutSide = () => {
 
 <style scoped lang="scss">
 .more-menu {
+  position: relative;
+  z-index: 2000;
   width: 150px;
   backdrop-filter: blur(4px) brightness(90%);
   background: rgba(255, 255, 255, 0.76);

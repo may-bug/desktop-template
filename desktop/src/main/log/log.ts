@@ -1,5 +1,6 @@
 import log from 'electron-log'
 import { app } from 'electron'
+import path from 'path'
 
 interface LogParams {
   model: 'main' | 'renderer'
@@ -12,11 +13,12 @@ log.transports.file.level = 'debug'
 log.transports.file.maxSize = 10024300 // 文件最大不超过 10M
 // 输出格式
 log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}'
-const date = new Date()
-const dateStr = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
+const dateStr = new Date().toISOString().split('T')[0]
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-log.transports.file.resolvePath = () => app.getPath('logs') + '/' + dateStr + '.log'
+// 修改为 resolvePathFn，并添加正确的返回类型
+log.transports.file.resolvePathFn = (): string => {
+  return path.join(app.getPath('logs'), `${dateStr}.log`)
+}
 
 const logger = {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

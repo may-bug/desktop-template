@@ -22,6 +22,50 @@ const createWindow = (
     parent //父窗口
   )
 }
+/**
+ * 创建工具栏窗口
+ * @param id
+ * @param title
+ * @param width
+ * @param height
+ * @param url
+ */
+const createToolbarWindow = (
+  id: string,
+  title: string,
+  width: number,
+  height: number,
+  url: string
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+) => {
+  window.electron.ipcRenderer.send(
+    'create-window-toolbar',
+    id, //id
+    title, //标题
+    width, //宽度
+    height, //高度
+    url //打开的页面路径
+  )
+}
+/**
+ * 创建悬浮球
+ * @param id
+ * @param size
+ * @param defaultPosition
+ */
+const createFloatWindow = (
+  id: string,
+  size: number,
+  defaultPosition?: { x: number; y: number }
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+) => {
+  window.electron.ipcRenderer.send(
+    'create-window-toolbar',
+    id, //id
+    size,
+    defaultPosition
+  )
+}
 
 /**
  * 关闭窗口
@@ -114,6 +158,21 @@ const openLink = (url: string) => {
   return window.electron.ipcRenderer.send('open-link', url)
 }
 
+/**
+ * 悬浮球点击穿透
+ */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const setFloatClickThrough = (data) => {
+  return window.electron.ipcRenderer.send('set-float-click-through', data)
+}
+/**
+ * 悬浮球拖拽
+ */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const floatDrag = (data) => {
+  return window.electron.ipcRenderer.send('float-drag', data)
+}
+
 export {
   createWindow,
   closeWindow,
@@ -126,5 +185,9 @@ export {
   exitApp,
   openLink,
   hideNotExitWindow,
-  createFileDialog
+  createFileDialog,
+  setFloatClickThrough,
+  floatDrag,
+  createToolbarWindow,
+  createFloatWindow
 }

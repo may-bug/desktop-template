@@ -1,6 +1,6 @@
-import { app, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import { shell } from 'electron'
-import { createNewWindow, windowsContainer } from './windows'
+import { createFloatWindow, createNewWindow, createToolbarWindow, windowsContainer } from './windows'
 import { logger } from '../log'
 import * as url from 'node:url'
 
@@ -73,8 +73,9 @@ const initWindows = () => {
   ipcMain.on('minimize-window', (_event, id: string) => {
     windowsContainer[id].minimize()
   })
-
-  //最大化窗口
+  /**
+   * 最大化窗口
+   */
   ipcMain.on('maximize-window', (_event, id: string) => {
     windowsContainer[id].maximize()
   })
@@ -105,6 +106,9 @@ const initWindows = () => {
       )
   })
 
+  /**
+   * 打开系统设置
+   */
   ipcMain.handle('openSystemPreferences', () => {
     if (process.platform === 'darwin') {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -115,7 +119,76 @@ const initWindows = () => {
       console.log('windows')
     }
   })
+  /**
+   * 工具栏窗口 IPC 处理
+   */
+  ipcMain.handle('toolbar-drag', (event, deltaX, deltaY) => {
+    const win = BrowserWindow.fromWebContents(event.sender)!
+    const [x, y] = win.getPosition()
+    win.setPosition(x + deltaX, y + deltaY)
+  })
+  /**
+   * 创建工具栏窗口
+   */
+  ipcMain.on(
+    'create-window-toolbar',
+    (event, id: string, title: string, width: number, height: number, url: string) => {
+      createToolbarWindow(id, title, width, height, url)
+    }
+  )
+  /**
+   * 创建悬浮球
+   */
+  ipcMain.on(
+    'create-window-float',
+    (event, id: string, size: number, defaultPosition?: { x: number; y: number }) => {
+      createFloatWindow(id, size, defaultPosition)
+    }
+  )
+  /**
+   * 最小化其它窗口
+   */
+  ipcMain.on('toolbar-minimize-others', (event) => {
+    const currentWindow = BrowserWindow.fromWebContents(event.sender)!
+    minimizeOtherWindows(currentWindow)
+  })
+  /**
+   * 悬浮球窗口拖拽
+   */
+  ipcMain.handle('float-drag', (event, { screenX, screenY }) => {
+    const win = BrowserWindow.fromWebContents(event.sender)!
+    const display = screen.getDisplayNearestPoint({ x: screenX, y: screenY })
 
+    // 计算边界
+    const maxX = display.bounds.x + display.bounds.width - win.getSize()[0]
+    const maxY = display.bounds.y + display.bounds.height - win.getSize()[1]
+
+    const clampedX = Math.max(display.bounds.x, Math.min(screenX, maxX))
+    const clampedY = Math.max(display.bounds.y, Math.min(screenY, maxY))
+
+    console.log('New Position:', clampedX, clampedY)
+    win.setPosition(clampedX, clampedY, true)
+  })
+  /**
+   * 悬浮球点击穿透
+   */
+  ipcMain.handle('float-set-click-through', (event, enabled) => {
+    const win = BrowserWindow.fromWebContents(event.sender)!
+    win.setIgnoreMouseEvents(enabled, {
+      forward: true
+    })
+  })
+  /**
+   * 通用窗口管理
+   */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  function minimizeOtherWindows(currentWindow: BrowserWindow) {
+    BrowserWindow.getAllWindows().forEach((win) => {
+      if (!win.isDestroyed() && win !== currentWindow) {
+        win.minimize()
+      }
+    })
+  }
   /**
    * 退出应用
    */
