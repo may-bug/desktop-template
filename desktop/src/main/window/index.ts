@@ -105,6 +105,17 @@ const initWindows = () => {
       )
   })
 
+  ipcMain.handle('openSystemPreferences', () => {
+    if (process.platform === 'darwin') {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('child_process').exec(
+        'open "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenRecording"'
+      )
+    } else if (process.platform === 'win32') {
+      console.log('windows')
+    }
+  })
+
   /**
    * 退出应用
    */

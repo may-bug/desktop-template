@@ -1,5 +1,5 @@
-import { desktopCapturer, ipcMain} from 'electron';
-
+import { desktopCapturer, ipcMain, nativeImage } from 'electron'
+import { captureService } from './DesktopCaptureService'
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const initScreen = () => {
   /**
@@ -12,11 +12,15 @@ const initScreen = () => {
     })
   })
 
-  /**
-   * 处理权限请求
-   */
-  ipcMain.on('request-desktop-capture-permission', () => {
-    // Electron会自动处理权限请求
+  ipcMain.handle('capture-desktop-source', async (_, sourceId: string) => {
+    const image = await captureService.captureSource(sourceId);
+    return image.toDataURL() // 返回base64编码的图像数据
+  })
+
+  ipcMain.handle('save-desktop-capture', async (_, { dataUrl, filePath }) => {
+    const image = nativeImage.createFromDataURL(dataUrl)
+    await captureService.saveCapture(image, filePath)
+    return { success: true, path: filePath }
   })
 }
 

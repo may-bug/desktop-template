@@ -8,6 +8,19 @@ const initPermissionHandler = () => {
       callback(false)
     }
   })
+  // 设置内容安全策略
+  // session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+  //   callback({
+  //     responseHeaders: {
+  //       ...details.responseHeaders,
+  //       'Content-Security-Policy': [
+  //         "default-src 'self' 'unsafe-inline'",
+  //         "media-src 'self' blob:",
+  //         "connect-src 'self' ws://localhost:*"
+  //       ]
+  //     }
+  //   })
+  // })
 }
 
 export { initPermissionHandler }
