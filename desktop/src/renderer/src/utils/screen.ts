@@ -21,4 +21,15 @@ const startVideoCapture = (sourceId: string) => {
   return window.electron.ipcRenderer.invoke('start-video-capture', sourceId)
 }
 
-export { getDesktopSources, getVideoSources, stopVideoCapture, startVideoCapture }
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const createDesktopStream=(sourceId)=>{
+  return window.electron.ipcRenderer.invoke('create-desktop-stream', sourceId)
+}
+
+export {
+  getDesktopSources,
+  getVideoSources,
+  stopVideoCapture,
+  startVideoCapture,
+  createDesktopStream
+}

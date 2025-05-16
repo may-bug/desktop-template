@@ -25,12 +25,12 @@ import Icon from './Icon.vue'
 import { createWindow } from '../utils/windows'
 import MoreMenu from './MoreMenu.vue'
 const active = ref('')
-const showMore=ref<boolean>(false)
+const showMore = ref<boolean>(false)
 
 const bottomMenus = ref([
   {
     name: 'menu-more',
-    value: 'more'
+    value: 'app'
   },
   {
     name: 'menu-messages',
@@ -52,14 +52,18 @@ const handleClick = (item: string) => {
   switch (item) {
     case 'more':
       showMore.value = false
-      createWindow('setting', '', 400, 400, '/setting', false, undefined)
+      createWindow('setting', '设置', 400, 400, '/setting', false, undefined)
       break
     case 'file':
       showMore.value = false
-      createWindow('file', '', 900, 600, '/file', false, undefined)
+      createWindow('file', '文件', 900, 600, '/file', false, undefined)
       break
     case 'menu':
-      showMore.value = !showMore.value
+      showMore.value = true
+      break
+    case 'app':
+      showMore.value = false
+      createWindow('app', '应用', 900, 600, '/app', false, undefined)
       break
     default:
       break

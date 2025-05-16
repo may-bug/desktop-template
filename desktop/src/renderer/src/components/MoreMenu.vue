@@ -6,6 +6,7 @@ import { Message, Modal } from '@arco-design/web-vue'
 
 // eslint-disable-next-line vue/require-prop-types
 const show = defineModel('show')
+const active = ref(null)
 const itemList = ref([
   {
     icon: 'menu-update',
@@ -36,16 +37,20 @@ const itemList = ref([
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const handleClick = (value) => {
-  console.log(`Clicked on ${value}`)
+  active.value = value
+  setTimeout(() => {
+    show.value = false
+    clearTimeout(this)
+  }, 1500)
   switch (value) {
     case 'setting':
-      createWindow('setting', '设置', 800, 600, '/setting', false, undefined)
+      createWindow('setting', '设置', 800, 600, '/setting', true, undefined)
       break
     case 'about':
-      createWindow('about', '关于', 300, 400, '/about', false, undefined)
+      createWindow('about', '关于', 300, 400, '/about', true, undefined)
       break
     case 'log':
-      createWindow('log', '关于', 1000, 700, '/log', false, undefined)
+      createWindow('log', '关于', 1000, 700, '/log', true, undefined)
       break
     case 'update':
       Message.success('已经是最新版了')
@@ -59,7 +64,7 @@ const handleClick = (value) => {
         alignCenter: true,
         cancelText: '取消',
         onOk() {
-          createWindow('login', '登录', 320, 450, '/login', false, undefined)
+          createWindow('login', '登录', 320, 450, '/login', true, undefined)
           closeWindow('main')
         },
         onCancel(e) {
@@ -85,7 +90,7 @@ const clickOutSide = () => {
     <div
       v-for="(item, index) in itemList"
       :key="index"
-      class="item"
+      :class="`item ${active === item.value ? 'active' : ''}`"
       @click="handleClick(item.value)"
     >
       <div class="icon">
@@ -121,5 +126,9 @@ const clickOutSide = () => {
     cursor: default;
     background: var(--color-fill-3);
   }
+}
+.active {
+  cursor: default;
+  background: var(--color-fill-3);
 }
 </style>

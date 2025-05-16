@@ -1,9 +1,6 @@
 <template>
-  <VideoCapture></VideoCapture>
 </template>
 
-<script setup lang="ts">
-import VideoCapture from '../../../components/screen/VideoCapture.vue.vue'
-</script>
+<script setup lang="ts"></script>
 <style>
 </style>

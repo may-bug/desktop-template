@@ -11,6 +11,21 @@ const initScreen = () => {
       thumbnailSize: { width: 1024, height: 768 }
     })
   })
+  ipcMain.handle('create-desktop-stream', (_, sourceId) => {
+    return navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+          chromeMediaSourceId: sourceId,
+          minWidth: 1280,
+          maxWidth: 3840,
+          minHeight: 720,
+          maxHeight: 2160
+        }
+      }
+    })
+  })
   ipcMain.handle('get-video-sources', () => videoCaptureService.getVideoSources())
   ipcMain.handle('start-video-capture', (_, sourceId: string) =>
     videoCaptureService.startCapture(sourceId)

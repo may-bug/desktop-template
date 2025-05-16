@@ -142,10 +142,20 @@ const handleMinWindow = () => {
     </div>
     <div class="icon close" @click="handleClosed"><Icon name="base-Close" :size="12" /></div>
   </div>
+  <div class="pla"></div>
 </template>
 
 <style scoped lang="scss">
+.pla{
+  position: relative;
+  width: 100%;
+  height: 30px;
+}
 .header {
+  position: fixed;
+  z-index: 999;
+  top: 0;
+  left: 0;
   display: flex;
   flex-direction: row;
   height: 30px;

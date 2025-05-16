@@ -1,6 +1,6 @@
-appId: cn.tecgui.desktop.dev
-productName: tecgui
-copyright: Copyright © 2025 TECGUI.CN
+appId: org.codelin.desktop.${name}
+productName: CodeLin
+copyright: Copyright © 2025 codelin.org
 directories:
   buildResources: build
 files:
@@ -10,12 +10,11 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-# 启用 ASAR 打包，将应用文件打包成单个压缩文件以提高安全性
 asar: true
 asarUnpack:
   - resources/**
 win:
-  executableName: tecgui
+  executableName: CodeLin
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -44,8 +43,9 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: electronjs.org
+  maintainer: codelin.org
   category: Utility
+  asar: true
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false

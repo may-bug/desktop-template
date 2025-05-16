@@ -169,9 +169,7 @@ const createNewWindow = (
       sandbox: true,
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: true,
-      experimentalFeatures: true,
-      enableBlinkFeatures: 'CSSBackdropFilter'
+      webSecurity: true
     }
   })
 
@@ -180,33 +178,38 @@ const createNewWindow = (
   })
 
   newWindow.webContents.on('render-process-gone', (e, details) => {
+    console.error('渲染进程崩溃:', {
+      reason: details.reason,
+      exitCode: details.exitCode,
+      stack: details.stack
+    })
     const options = {
       type: 'error',
       title: '进程崩溃了',
-      message: '这个进程已经崩溃.',
-      buttons: ['重载', '退出']
+      message: `这个进程已经崩溃.\n'
+      reason: ${details.reason},
+      exitCode: ${details.exitCode},
+      stack: ${details.stack}`,
+      buttons: ['重试', '关闭']
     }
-    recordCrash(details)
-      .then(() => {
-        dialog.showMessageBox(options).then(({ response }) => {
-          console.log(response)
-          if (response === 0) reloadWindow()
-          else app.quit()
-        })
-      })
-      .catch((e) => {
-        logger.error({ score: 'sys', value: e.message })
-      })
+    dialog.showMessageBox(windowsContainer[id], options).then(({ response }) => {
+      if (response === 0) reloadWindow(id)
+      else app.quit()
+    })
   })
 
   newWindow.webContents.setWindowOpenHandler((details) => {
     shell
       .openExternal(details.url)
       .then(() => {
-        logger.info({ score: 'sys', value: `openHandler ${details.url}` })
+        logger.info({ model: 'main', score: 'sys', value: `openHandler ${details.url}` })
       })
       .catch((e) => {
-        logger.error({ score: 'sys', value: `openHandler ${details.url} cause ${e.message}` })
+        logger.error({
+          model: 'main',
+          score: 'sys',
+          value: `openHandler ${details.url} cause ${e.message}`
+        })
       })
     return { action: 'deny' }
   })
@@ -216,6 +219,11 @@ const createNewWindow = (
     newWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash: url })
   }
   windowsContainer[id] = newWindow
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const reloadWindow = (id: string) => {
+  windowsContainer[id].reload()
 }
 
 export { createNewWindow, createFloatWindow, createToolbarWindow, windowsContainer }
