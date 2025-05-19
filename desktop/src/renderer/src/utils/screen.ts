@@ -1,35 +1,18 @@
 /**
  * 获取捕获窗口信息
  */
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const getDesktopSources = () => {
   return window.electron.ipcRenderer.invoke('get-desktop-sources')
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const getVideoSources = () => {
-  return window.electron.ipcRenderer.invoke('get-desktop-sources')
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const stopVideoCapture = (sourceId: string) => {
-  return window.electron.ipcRenderer.invoke('stop-video-capture', sourceId)
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const startVideoCapture = (sourceId: string) => {
-  return window.electron.ipcRenderer.invoke('start-video-capture', sourceId)
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createDesktopStream=(sourceId)=>{
-  return window.electron.ipcRenderer.invoke('create-desktop-stream', sourceId)
+const getDesktopStream = () => {
+  return window.electron.ipcRenderer.invoke('get-desktop-stream')
 }
 
 export {
   getDesktopSources,
-  getVideoSources,
-  stopVideoCapture,
-  startVideoCapture,
-  createDesktopStream
+  getDesktopStream,
 }

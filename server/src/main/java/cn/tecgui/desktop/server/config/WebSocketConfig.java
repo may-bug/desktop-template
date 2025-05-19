@@ -1,30 +1,23 @@
 package cn.tecgui.desktop.server.config;
 
-import cn.tecgui.desktop.server.components.RateLimiter;
-import cn.tecgui.desktop.server.components.SensitiveWordFilter;
-import cn.tecgui.desktop.server.handler.DataSocketHandler;
-import cn.tecgui.desktop.server.interceptor.AuthHandshakeInterceptor;
-import cn.tecgui.desktop.server.service.DataService;
+import cn.tecgui.desktop.server.handler.SignalingHandler;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
-import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
+import org.springframework.web.socket.config.annotation.*;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    private final DataService dataService;
+    private final SignalingHandler signalingHandler;
 
-    public WebSocketConfig(DataService dataService) {
-        this.dataService = dataService;
+    public WebSocketConfig(SignalingHandler signalingHandler) {
+        this.signalingHandler = signalingHandler;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new DataSocketHandler(dataService,new SensitiveWordFilter()), "/ws/video")
-                .setAllowedOrigins("*")
-                .addInterceptors(new AuthHandshakeInterceptor(),new HttpSessionHandshakeInterceptor());
+        registry.addHandler(signalingHandler, "/ws/signaling")
+                .setAllowedOriginPatterns("*");
     }
 }
+

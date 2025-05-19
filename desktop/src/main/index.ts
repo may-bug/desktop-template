@@ -23,6 +23,11 @@ import { initClipboard } from './clipboard'
 /**
  * 开启进程沙盒化
  */
+app.commandLine.appendSwitch('enable-usermedia-screen-capturing')
+app.commandLine.appendSwitch('use-fake-ui-for-media-stream') // 避免弹窗
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer')
+}
 app.enableSandbox()
 app.whenReady().then(async () => {
   /**

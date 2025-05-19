@@ -11,7 +11,7 @@ const showView = ref('account')
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const openMainWindow = () => {
-  createWindow('main', '主界面', 980, 720, '/', true, undefined)
+  createWindow('main', '主界面', 980, 720, '/main', true, undefined)
   closeWindow('login')
 }
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

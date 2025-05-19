@@ -1,9 +1,0 @@
-onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - bufferutil
-  - electron
-  - es5-ext
-  - esbuild
-  - sqlite3
-  - trtc-electron-sdk
-  - utf-8-validate

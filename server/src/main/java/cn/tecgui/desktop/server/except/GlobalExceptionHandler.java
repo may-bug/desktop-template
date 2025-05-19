@@ -14,19 +14,4 @@ public class GlobalExceptionHandler {
     public HttpResponse<String> handleNotLogin(NotLoginException e) {
         return HttpResponse.get(401,"未登录",null);
     }
-
-    @ExceptionHandler(RoomNotFoundException.class)
-    public HttpResponse<String> handleRoomNotFound(RoomNotFoundException e) {
-        return HttpResponse.get(404,"资源未授权",null);
-    }
-
-    @ExceptionHandler(RoomFullException.class)
-    public HttpResponse<String> handleRoomFull(RoomFullException e) {
-        return HttpResponse.get(403,"拒绝访问",null);
-    }
-
-    @ExceptionHandler(UnauthorizedAccessException.class)
-    public HttpResponse<String> handleUnauthorized(UnauthorizedAccessException e) {
-        return HttpResponse.get(401,"未登录",null);
-    }
 }

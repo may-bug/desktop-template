@@ -24,10 +24,15 @@ import { ref } from 'vue'
 import Icon from './Icon.vue'
 import { createWindow } from '../utils/windows'
 import MoreMenu from './MoreMenu.vue'
+import { router } from '../router'
 const active = ref('')
 const showMore = ref<boolean>(false)
 
 const bottomMenus = ref([
+  {
+    name: 'menu-more',
+    value: 'desktop'
+  },
   {
     name: 'menu-more',
     value: 'app'
@@ -64,6 +69,10 @@ const handleClick = (item: string) => {
     case 'app':
       showMore.value = false
       createWindow('app', '应用', 900, 600, '/app', false, undefined)
+      break
+    case 'desktop':
+      showMore.value = false
+      router.push("/main/desktop")
       break
     default:
       break

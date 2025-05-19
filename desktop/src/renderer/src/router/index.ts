@@ -20,7 +20,7 @@ const routes = [
     component: () => import('@renderer/views/welcome/index.vue')
   },
   {
-    path: '/',
+    path: '/main',
     name: 'main',
     meta: {
       title: '主界面'
@@ -33,8 +33,26 @@ const routes = [
         name: 'main-home',
         // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         component: () => import('@renderer/views/main/home/index.vue')
-      }
+      },
+      {
+        path: 'desktop',
+        name: 'desktop',
+        meta: {
+          title: '远程桌面'
+        },
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        component: () => import('@renderer/views/desktop/index.vue')
+      },
     ]
+  },
+  {
+    path: '/remote',
+    name: 'remote',
+    meta: {
+      title: '远程桌面'
+    },
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    component: () => import('@renderer/views/desktop/Remote.vue'),
   },
   {
     path: '/close',

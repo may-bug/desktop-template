@@ -1,13 +1,16 @@
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import {useDataStore} from '../stores/useDataStore'
+
+const dataStore=useDataStore()
 
 const service: AxiosInstance = axios.create({
   baseURL: '/api',
   // baseURL: 'http://localhost:8000',
   withCredentials: true,
   timeout: 5 * 1000,
-  headers: {
-    Accept: '*',
-    'Content-Type': 'application/x-www-form-urlencoded',
+  headers:{
+    //@ts-ignore
+    'Tecgui':dataStore.token
   }
 })
 service.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -23,7 +26,11 @@ export const http = {
     const config = {
       method: 'GET',
       url: url,
-      params: params ? params : {}
+      params: params ? params : {},
+      headers:{
+        Accept: '*',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }
     }
     return service(config)
   },
@@ -31,7 +38,11 @@ export const http = {
     const config = {
       method: 'POST',
       url: url,
-      data: data
+      data: data,
+      headers:{
+        Accept: '*',
+        "Content-Type": "application/json",
+      }
     }
     return service(config)
   }

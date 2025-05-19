@@ -1,11 +1,11 @@
-import { dialog, session } from 'electron'
-import { windowsContainer } from '../window/windows'
+import { session } from 'electron'
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const initPermissionHandler = () => {
+  //@ts-ignore
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
     // const allowedPermissions = ['media', 'desktopCapture', 'notifications']
     // if (allowedPermissions.includes(permission)) {
-    //   callback(true) // 允许权限
+      callback(true) // 允许权限
     // }
     //
     // const parsedUrl = new URL(webContents.getURL())
@@ -16,13 +16,13 @@ const initPermissionHandler = () => {
     //   return callback(false)
     // }
     // 启用桌面捕获
-    session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
-      callback(true) // 自动同意屏幕共享请求
-    })
-    dialog.showMessageBox(windowsContainer['main'], {
-      title: '权限申请',
-      message: `系统使用${permission}权限`
-    })
+    // session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
+    //   callback(true) // 自动同意屏幕共享请求
+    // })
+    // dialog.showMessageBox(windowsContainer['main'], {
+    //   title: '权限申请',
+    //   message: `系统使用${permission}权限`
+    // })
   })
 }
 

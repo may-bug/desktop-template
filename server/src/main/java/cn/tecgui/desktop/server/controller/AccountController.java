@@ -17,12 +17,12 @@ public class AccountController {
     @SaIgnore
     @PostMapping("/login")
     public HttpResponse<Object> login(@RequestBody LoginRequest request) {
-        String username = request.getUsername();
+        String account = request.getAccount();
         String password = request.getPassword();
-        if (username == null || password == null) {
-            return HttpResponse.fail("");
+        if (account == null || password == null) {
+            return HttpResponse.fail("登录失败");
         }
-        if (!username.equals("admin")){
+        if (!account.equals("admin")){
             return HttpResponse.fail("账号不存在");
         }
         if(!password.equals("123456")){
@@ -30,10 +30,10 @@ public class AccountController {
         }
         SaLoginParameter parameter= new SaLoginParameter();
         parameter.setExtra("name","管理员");
-        StpUtil.login(username,parameter);
+        StpUtil.login(account,parameter);
         Map<String,String> result=new HashMap<>();
         result.put("token", StpUtil.getTokenValue());
-        result.put("name", request.getUsername());
+        result.put("uid", request.getAccount());
         return HttpResponse.success("登录成功",result);
     }
 
