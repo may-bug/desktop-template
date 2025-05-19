@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class="video">
-      <video ref="video" style="width: 100%; height: 100%"></video>
+      <video ref="video" autoplay playsinline style="width: 100%; height: 100%"></video>
     </div>
     <div class="opt-list">
       <a-button class="btn" type="primary" status="success" @click="getDesktopSourceList"
@@ -61,24 +61,25 @@ const startRecord = async () => {
     Message.error('未选中屏幕')
     return
   }
+  console.log(selectScreen.value)
   try {
-    let constraints = {
+    // 修改 constraints 配置
+    const constraints: MediaStreamConstraints = {
       audio: false,
       video: {
+        // @ts-ignore - 强制指定 Electron 扩展属性
         mandatory: {
           chromeMediaSource: 'desktop',
-          chromeMediaSourceId: selectScreen.value.id
+          chromeMediaSourceId: selectScreen.value.id,
+          minWidth: 1280, // 可选：限制分辨率
+          maxWidth: 1920,
+          minHeight: 720,
+          maxHeight: 1080
         }
       }
     }
-    navigator.mediaDevices
-      .getUserMedia(constraints)
-      .then((stream) => {
-        handleStream(stream)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
+    const stream = await navigator.mediaDevices.getUserMedia(constraints)
+    handleStream(stream)
   } catch (e) {
     console.log(e)
     Message.error(e.message)
