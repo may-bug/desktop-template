@@ -82,6 +82,15 @@ const routes = [
     component: () => import('@renderer/views/app/index.vue')
   },
   {
+    path: '/notify',
+    name: 'notify',
+    meta: {
+      title: '通知'
+    },
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    component: () => import('@renderer/views/notify/index.vue')
+  },
+  {
     path: '/log',
     name: 'log',
     meta: {

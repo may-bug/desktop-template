@@ -1,6 +1,6 @@
 <template>
   <div class="toolbar">
-    <Header :window-id="props.id" :is-hide="false" :is-min-max="false" />
+    <Header :window-id="'notify'" :is-hide="false" :is-min-max="false" :title="props.title" />
     <slot></slot>
   </div>
 </template>
@@ -8,7 +8,7 @@
 <script setup>
 import Header from './Header.vue'
 const props = defineProps({
-  id: {
+  title: {
     type: String,
     required: true
   }

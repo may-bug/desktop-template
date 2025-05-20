@@ -1,4 +1,4 @@
-import { subDesktopMessage } from './desktopMessage'
+import { sendControlRequest, subDesktopMessage } from './desktopMessage'
 import { ipcMain } from 'electron'
 import { store } from '../store'
 
@@ -9,6 +9,10 @@ const initMessage = () => {
     const deviceId = store.get('deviceId')
     const token = store.get('token')
     subDesktopMessage(token, deviceId)
+  })
+
+  ipcMain.on('send-desktop-message', (_event, val) => {
+    sendControlRequest(val)
   })
 }
 

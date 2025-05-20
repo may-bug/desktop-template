@@ -1,5 +1,6 @@
 package cn.tecgui.desktop.server.service;
 
+import cn.tecgui.desktop.server.model.ConnInfo;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
@@ -13,32 +14,27 @@ import java.util.stream.Collectors;
 @Service
 public class DeviceSessionService {
     private final RedisTemplate<String, Object> redisTemplate;
-    private static final String USER_DEVICES_KEY_PREFIX = "user_devices:";  // 用户ID -> 设备列表
-    private static final String DEVICE_SESSION_KEY_PREFIX = "device_session:"; // 设备ID -> SessionId
+    private static final String USER_DEVICES_KEY_PREFIX = "user_devices:";
+    private static final String USER_UID_KEY_PREFIX = "user_uid:";
 
-    private final ConcurrentHashMap<String, WebSocketSession> deviceSessionCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ConnInfo> deviceSessionCache = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, String> deviceToUserMap = new ConcurrentHashMap<>();
 
     public DeviceSessionService(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
-    public void addDeviceSession(String uid, String deviceId, WebSocketSession session) {
+    public void addDeviceSession(String deviceId,ConnInfo info) {
         // 绑定设备到用户，存储到 Redis
-        String userDevicesKey = USER_DEVICES_KEY_PREFIX + uid;
+        String userDevicesKey = USER_DEVICES_KEY_PREFIX + deviceId;
         redisTemplate.opsForSet().add(userDevicesKey, deviceId);
 
-        String deviceSessionKey = DEVICE_SESSION_KEY_PREFIX + deviceId;
-        redisTemplate.opsForValue().set(deviceSessionKey, session.getId(), Duration.ofHours(1));
-
-        deviceSessionCache.put(deviceId, session);
+        deviceSessionCache.put(deviceId,info);
     }
 
-    public void removeDeviceSession(String uid, String deviceId) {
-        String userDevicesKey = USER_DEVICES_KEY_PREFIX + uid;
+    public void removeDeviceSession(String deviceId) {
+        String userDevicesKey = USER_DEVICES_KEY_PREFIX + deviceId;
         redisTemplate.opsForSet().remove(userDevicesKey, deviceId);
-
-        String deviceSessionKey = DEVICE_SESSION_KEY_PREFIX + deviceId;
-        redisTemplate.delete(deviceSessionKey);
 
         deviceSessionCache.remove(deviceId);
     }
@@ -49,10 +45,6 @@ public class DeviceSessionService {
         if (members == null) return Collections.emptySet();
 
         return members.stream().map(Object::toString).collect(Collectors.toSet());
-    }
-
-    public WebSocketSession getSessionByDeviceId(String deviceId) {
-        return deviceSessionCache.get(deviceId);
     }
 }
 

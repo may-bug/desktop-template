@@ -5,7 +5,6 @@ import AccountLogin from './AccountLogin.vue'
 import QrLogin from './QrLogin.vue'
 import { onMounted, ref } from 'vue'
 import { isLoginAPI } from '../../api/auth'
-
 const showView = ref('account')
 /**
  * 打开主界面
@@ -23,9 +22,9 @@ const handleClick = () => {
     showView.value = 'account'
   }
 }
-onMounted(() => {
+onMounted(async () => {
   isLoginAPI().then((res) => {
-    if (res.code === 200) {
+    if (res.code === 200 && res.data) {
       setTimeout(() => {
         openMainWindow()
       }, 3000)

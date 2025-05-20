@@ -30,9 +30,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import {onMounted, ref} from 'vue';
 import { Message } from '@arco-design/web-vue';
-import {loginByAccountAPI} from "../../api/auth"
+import {isLoginAPI, loginByAccountAPI} from "../../api/auth"
 import {router} from "../../router";
 import {useDataStore} from "../../stores/useDataStore.ts";
 
@@ -54,7 +54,7 @@ const onSubmit = () => {
           setTimeout(() => {
             Message.success(res.msg);
             loading.value = false;
-            router.push("/device")
+            router.push("/desktop")
             clearTimeout(this)
           }, 1000);
         }else{
@@ -65,6 +65,16 @@ const onSubmit = () => {
         loading.value = false;
       })
 };
+
+onMounted(() => {
+  isLoginAPI().then((res) => {
+    if (res.code === 200 && res.data) {
+      setTimeout(() => {
+        router.push("/device")
+      }, 3000)
+    }
+  })
+})
 </script>
 
 <style scoped>

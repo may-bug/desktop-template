@@ -10,7 +10,6 @@ const windowsContainer: { [key: string]: BrowserWindow } = {}
 
 // 工具栏窗口参数类型
 interface NotifyWindowParams {
-  id: string
   title: string
   width: number
   height: number
@@ -70,7 +69,7 @@ const createToolbarWindow = (params: ToolbarWindowParams): void => {
 // 创建通知栏窗口（自动最小化其他窗口）
 const createNotifyWindow = (params: NotifyWindowParams): void => {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize
-  const margin = 20
+  const margin = 10
 
   const win = new BrowserWindow({
     title: params.title,
@@ -101,7 +100,10 @@ const createNotifyWindow = (params: NotifyWindowParams): void => {
     },
     params.timeout ? params.timeout : 10000
   )
-  windowsContainer[params.id] = win
+  win.on('ready-to-show', () => {
+    win.show()
+  })
+  windowsContainer['notify'] = win
 }
 
 /**

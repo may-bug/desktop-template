@@ -1,22 +1,46 @@
 <template>
   <transition name="fade">
-    <Notify :id="store.current.title">
-      <div v-if="store.current" class="notify-box" v-html="store.current.html" />
+    <Notify title="邀请协助">
+
+      <a-button type="primary" status="danger" @click="handleReject">拒绝</a-button>
+      <a-button type="primary" status="normal" @click="handleAgree">同意</a-button>
     </Notify>
   </transition>
 </template>
 
 <script setup lang="ts">
-import { useNotify } from '../../stores/useNotify'
 import Notify from '../../components/Notify.vue'
-const store = useNotify()
+import { onMounted, ref } from 'vue'
+import { sendDesktopMessage } from '../../utils/message'
+
+const time = ref<number>(60)
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const initTimer = () => {
+  setInterval(() => {
+    time.value--
+  })
+}
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const handleAgree = () => {
+  sendDesktopMessage({
+    type: 'answer',
+    to: ''
+  })
+}
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const handleReject = () => {
+  sendDesktopMessage({
+    type: 'reject'
+  })
+}
+onMounted(() => {
+  initTimer()
+})
 </script>
 
 <style scoped>
 .notify-box {
-  position: fixed;
-  right: 20px;
-  bottom: 40px;
+  position: relative;
   background: #fff;
   padding: 12px 16px;
   border-radius: 8px;

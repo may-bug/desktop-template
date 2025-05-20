@@ -9,13 +9,24 @@ const routes=[
     {
         path:'/desktop',
         name:'desktop',
-        component:()=>import("../views/desktop/index.vue")
-    },
-    {
-        path:'/device',
-        name:'device',
-        component:()=>import("../views/device/index.vue")
-    },
+        component:()=>import("../views/desktop/index.vue"),
+        children:[
+            {
+                path:'',
+                name:'device',
+                component:()=>import("../views/desktop/device/index.vue")
+            },{
+                path:'loading',
+                name:'loading',
+                component:()=>import("../views/desktop/loading/index.vue")
+            },
+            {
+                path:'control',
+                name:'control',
+                component:()=>import("../views/desktop/control/index.vue")
+            },
+        ]
+    }
 ]
 
 const router = createRouter({

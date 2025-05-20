@@ -1,32 +1,17 @@
 <script setup lang="ts">
-import {onMounted, ref} from 'vue'
-import { Message } from '@arco-design/web-vue'
-import { router } from '../../router'
-import {connectWebControl, sendControlRequest} from "../../hooks/useMessage.ts";
-import {useDataStore} from "../../stores/useDataStore.ts";
+import {ref} from "vue";
+import {connectToDevice} from "../../../hooks/useDesktopEmit";
+import {Message} from "@arco-design/web-vue";
 
-const dataStore=useDataStore();
-// 用户输入的设备 ID
-const inputDeviceId = ref('')
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const connectToDevice = () => {
+const inputDeviceId=ref("")
+const connectDevice=()=>{
   const trimmedId = inputDeviceId.value.trim()
-
   if (!trimmedId) {
     Message.warning('请输入设备 ID')
     return
   }
-
-  sendControlRequest(trimmedId,dataStore.deviceId)
-
-  Message.success(`正在连接设备 ${trimmedId}...`)
-  router.push('/desktop')
+  connectToDevice(trimmedId)
 }
-
-onMounted(()=>{
-  connectWebControl(dataStore.token,dataStore.deviceId)
-})
 </script>
 
 <template>
@@ -39,7 +24,7 @@ onMounted(()=>{
           allow-clear
           style="margin-bottom: 16px"
       />
-      <a-button type="primary" long @click="connectToDevice">连接设备</a-button>
+      <a-button type="primary" long @click="connectDevice">连接设备</a-button>
     </div>
   </div>
 </template>

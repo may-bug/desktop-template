@@ -138,8 +138,8 @@ const initWindows = () => {
    */
   ipcMain.on(
     'create-window-notify',
-    (event, id: string, title: string, width: number, height: number, timeout: number) => {
-      createNotifyWindow({ id: id, title: title, width: width, height: height, timeout: timeout })
+    (event, title: string, width: number, height: number, timeout: number) => {
+      createNotifyWindow({ title: title, width: width, height: height, timeout: timeout })
     }
   )
   /**

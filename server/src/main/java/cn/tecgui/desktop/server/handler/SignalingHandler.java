@@ -5,7 +5,6 @@ import cn.tecgui.desktop.server.service.DeviceSessionService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -20,17 +19,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class SignalingHandler extends TextWebSocketHandler {
-    private final SimpMessagingTemplate messagingTemplate;
     private final DeviceSessionService deviceSessionService;
     private final SaTokenManager saTokenManager;
 
-    public SignalingHandler(SimpMessagingTemplate messagingTemplate, DeviceSessionService deviceSessionService, SaTokenManager saTokenManager) {
-        this.messagingTemplate = messagingTemplate;
+    private final ConcurrentHashMap<String, WebSocketSession> deviceSessionCache = new ConcurrentHashMap<>();
+
+    public SignalingHandler(DeviceSessionService deviceSessionService, SaTokenManager saTokenManager) {
         this.deviceSessionService = deviceSessionService;
         this.saTokenManager = saTokenManager;
     }
-
-    private final ConcurrentHashMap<String, String> deviceToUserMap = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -58,8 +55,8 @@ public class SignalingHandler extends TextWebSocketHandler {
             return;
         }
 
-        deviceToUserMap.put(deviceId, uid);
-        deviceSessionService.addDeviceSession(uid, deviceId, session);
+        deviceSessionCache.put(deviceId, session);
+        deviceSessionService.deviceToUserMap.put(deviceId, uid);
 
         log.info("用户 {} 设备 {} 建立连接", uid, deviceId);
     }
@@ -72,25 +69,14 @@ public class SignalingHandler extends TextWebSocketHandler {
         if (type.equals("ping")) {
             return;
         }
-
         String to = node.has("to") ? node.get("to").asText() : null;
         String from = node.has("form") ? node.get("form").asText() : null;
-
         switch (type) {
             case "offer":
                 handleOffer(to, node);
                 break;
-            case "answer":
-                handleAnswer(to, node, from);
-                break;
             case "candidate":
                 handleCandidate(to, node);
-                break;
-            case "control":
-                handleControlRequest(to, from);
-                break;
-            case "reused":
-                handleReused(to, node, from);
                 break;
             default:
                 session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"unknown type\"}"));
@@ -99,11 +85,11 @@ public class SignalingHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        deviceToUserMap.entrySet().removeIf(entry -> {
+        deviceSessionService.deviceToUserMap.entrySet().removeIf(entry -> {
             String deviceId = entry.getKey();
-            WebSocketSession ws = deviceSessionService.getSessionByDeviceId(deviceId);
+            WebSocketSession ws =getSessionByDeviceId(deviceId);
             if (ws == null || ws == session) {
-                deviceSessionService.removeDeviceSession(entry.getValue(), deviceId);
+                deviceSessionService.removeDeviceSession(deviceId);
                 log.info("设备 {} 断开连接", deviceId);
                 return true;
             }
@@ -120,7 +106,7 @@ public class SignalingHandler extends TextWebSocketHandler {
     }
 
     private void handleOffer(String toDeviceId, JsonNode node) throws Exception {
-        WebSocketSession targetSession = deviceSessionService.getSessionByDeviceId(toDeviceId);
+        WebSocketSession targetSession =getSessionByDeviceId(toDeviceId);
         if (targetSession != null && targetSession.isOpen()) {
             targetSession.sendMessage(new TextMessage(node.toString()));
         } else {
@@ -128,18 +114,8 @@ public class SignalingHandler extends TextWebSocketHandler {
         }
     }
 
-    private void handleAnswer(String toDeviceId, JsonNode node, String fromDeviceId) throws Exception {
-        WebSocketSession targetSession = deviceSessionService.getSessionByDeviceId(toDeviceId);
-        if (targetSession != null && targetSession.isOpen()) {
-            targetSession.sendMessage(new TextMessage(node.toString()));
-            sendNotifyToDeviceOwner(toDeviceId, "accept", fromDeviceId);
-        } else {
-            log.warn("目标设备 {} 不在线，answer 转发失败", toDeviceId);
-        }
-    }
-
     private void handleCandidate(String toDeviceId, JsonNode node) throws Exception {
-        WebSocketSession targetSession = deviceSessionService.getSessionByDeviceId(toDeviceId);
+        WebSocketSession targetSession =getSessionByDeviceId(toDeviceId);
         if (targetSession != null && targetSession.isOpen()) {
             targetSession.sendMessage(new TextMessage(node.toString()));
         } else {
@@ -147,38 +123,7 @@ public class SignalingHandler extends TextWebSocketHandler {
         }
     }
 
-    private void handleReused(String toDeviceId, JsonNode node, String fromDeviceId) throws Exception {
-        WebSocketSession targetSession = deviceSessionService.getSessionByDeviceId(toDeviceId);
-        if (targetSession != null && targetSession.isOpen()) {
-            targetSession.sendMessage(new TextMessage(node.toString()));
-            sendNotifyToDeviceOwner(toDeviceId, "reject", fromDeviceId);
-        } else {
-            log.warn("目标设备 {} 不在线，reused 转发失败", toDeviceId);
-        }
-    }
-
-    private void handleControlRequest(String toDeviceId, String fromDeviceId) throws Exception {
-        sendNotifyToDeviceOwner(toDeviceId, "join", fromDeviceId);
-        log.info("已通知设备 {} 的用户，来自设备 {}", toDeviceId, fromDeviceId);
-    }
-
-    /**
-     * 通过 STOMP 向设备所有者推送通知
-     */
-    private void sendNotifyToDeviceOwner(String targetDeviceId, String event, String fromDeviceId) {
-        String targetUid = deviceToUserMap.get(targetDeviceId);
-        if (targetUid == null) {
-            log.warn("找不到设备 {} 对应的用户，通知失败", targetDeviceId);
-            return;
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        var notifyMsg = mapper.createObjectNode();
-        notifyMsg.put("type", "control_notify");
-        notifyMsg.put("event", event);
-        notifyMsg.put("from", fromDeviceId);
-
-        messagingTemplate.convertAndSendToUser(targetUid, "/queue/control_notify", notifyMsg);
-        log.info("推送通知给用户 {}，设备 {}，事件 {}，来自设备 {}", targetUid, targetDeviceId, event, fromDeviceId);
+    private WebSocketSession getSessionByDeviceId(String deviceId) {
+        return deviceSessionCache.get(deviceId);
     }
 }
