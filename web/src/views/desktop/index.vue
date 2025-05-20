@@ -4,8 +4,6 @@ import {connectWebControl} from "../../hooks/useMessage.ts";
 import {useDataStore} from "../../stores/useDataStore.ts";
 
 const dataStore=useDataStore()
-
-
 onMounted(()=>{
   connectWebControl(dataStore.token,dataStore.deviceId)
 })

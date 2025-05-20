@@ -1,7 +1,6 @@
 <template>
   <transition name="fade">
     <Notify title="邀请协助">
-
       <a-button type="primary" status="danger" @click="handleReject">拒绝</a-button>
       <a-button type="primary" status="normal" @click="handleAgree">同意</a-button>
     </Notify>
@@ -12,6 +11,7 @@
 import Notify from '../../components/Notify.vue'
 import { onMounted, ref } from 'vue'
 import { sendDesktopMessage } from '../../utils/message'
+import { createToolbarWindow} from '../../utils/windows'
 
 const time = ref<number>(60)
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -26,6 +26,7 @@ const handleAgree = () => {
     type: 'answer',
     to: ''
   })
+  createToolbarWindow('工具栏', 300, 100)
 }
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const handleReject = () => {

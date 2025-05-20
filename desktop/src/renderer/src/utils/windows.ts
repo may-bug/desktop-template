@@ -24,27 +24,21 @@ const createWindow = (
 }
 /**
  * 创建工具栏窗口
- * @param id
  * @param title
  * @param width
  * @param height
- * @param url
  */
 const createToolbarWindow = (
-  id: string,
   title: string,
   width: number,
-  height: number,
-  url: string
+  height: number
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 ) => {
   window.electron.ipcRenderer.send(
     'create-window-toolbar',
-    id, //id
     title, //标题
     width, //宽度
-    height, //高度
-    url //打开的页面路径
+    height //高度
   )
 }
 /**
@@ -173,9 +167,13 @@ const floatDrag = (data) => {
   return window.electron.ipcRenderer.send('float-drag', data)
 }
 
+/**
+ * 最小化除了id之外的窗口
+ * @param id
+ */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const minimizeOthers=(id:string)=>{
-  window.electron.ipcRenderer.send('minimize-others',id)
+const minimizeOthers = (id: string) => {
+  window.electron.ipcRenderer.send('minimize-others', id)
 }
 
 export {

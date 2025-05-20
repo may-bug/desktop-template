@@ -16,6 +16,9 @@ const initStore = () => {
   getValue('token').then((value) => {
     dataStore.setToken(value)
   })
+  getValue('deviceId').then((value) => {
+    dataStore.setDeviceId(value)
+  })
 }
 onMounted(initStore)
 </script>

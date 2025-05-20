@@ -63,23 +63,37 @@ public class SignalingHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode node = mapper.readTree(message.getPayload());
-        String type = node.get("type").asText();
-        if (type.equals("ping")) {
-            return;
-        }
-        String to = node.has("to") ? node.get("to").asText() : null;
-        String from = node.has("form") ? node.get("form").asText() : null;
-        switch (type) {
-            case "offer":
-                handleOffer(to, node);
-                break;
-            case "candidate":
-                handleCandidate(to, node);
-                break;
-            default:
-                session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"unknown type\"}"));
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(message.getPayload());
+            String type = node.get("type").asText();
+            if (type.equals("ping")) {
+                session.sendMessage(new TextMessage("{\"type\":\"pong\"}"));
+                return;
+            }
+            String to = node.has("to") ? node.get("to").asText() : null;
+            switch (type) {
+                case "offer":
+                    handleOffer(to, node);
+                    break;
+                case "answer":
+                    handleAnswer(to, node);
+                    break;
+                case "reused":
+                    handleReused(to, node);
+                    break;
+                case "candidate":
+                    handleCandidate(to, node);
+                    break;
+                case "leave":
+                    handleLeave(to, node);
+                    break;
+                default:
+                    session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"unknown type\"}"));
+            }
+        } catch (Exception e) {
+            log.error("处理消息出错", e);
+            session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"内部错误\"}"));
         }
     }
 
@@ -87,15 +101,17 @@ public class SignalingHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         deviceSessionService.deviceToUserMap.entrySet().removeIf(entry -> {
             String deviceId = entry.getKey();
-            WebSocketSession ws =getSessionByDeviceId(deviceId);
+            WebSocketSession ws = getSessionByDeviceId(deviceId);
             if (ws == null || ws == session) {
                 deviceSessionService.removeDeviceSession(deviceId);
+                deviceSessionCache.remove(deviceId);
                 log.info("设备 {} 断开连接", deviceId);
                 return true;
             }
             return false;
         });
     }
+
 
     private Map<String, String> parseQueryParams(String query) {
         if (query == null) return Map.of();
@@ -122,6 +138,35 @@ public class SignalingHandler extends TextWebSocketHandler {
             log.warn("目标设备 {} 不在线，candidate 转发失败", toDeviceId);
         }
     }
+
+    private void handleAnswer(String toDeviceId, JsonNode node) throws Exception {
+        WebSocketSession targetSession = getSessionByDeviceId(toDeviceId);
+        if (targetSession != null && targetSession.isOpen()) {
+            targetSession.sendMessage(new TextMessage(node.toString()));
+        } else {
+            log.warn("目标设备 {} 不在线，answer 转发失败", toDeviceId);
+        }
+    }
+
+    private void handleLeave(String toDeviceId, JsonNode node) throws Exception {
+        WebSocketSession targetSession = getSessionByDeviceId(toDeviceId);
+        if (targetSession != null && targetSession.isOpen()) {
+            targetSession.sendMessage(new TextMessage(node.toString()));
+        } else {
+            log.warn("目标设备 {} 不在线，leave 转发失败", toDeviceId);
+        }
+    }
+
+    private void handleReused(String toDeviceId, JsonNode node) throws Exception {
+        WebSocketSession targetSession = getSessionByDeviceId(toDeviceId);
+        if (targetSession != null && targetSession.isOpen()) {
+            targetSession.sendMessage(new TextMessage(node.toString()));
+            log.info("已向设备 {} 转发 reused 消息", toDeviceId);
+        } else {
+            log.warn("目标设备 {} 不在线，reused 转发失败", toDeviceId);
+        }
+    }
+
 
     private WebSocketSession getSessionByDeviceId(String deviceId) {
         return deviceSessionCache.get(deviceId);

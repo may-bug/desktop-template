@@ -1,3 +1,5 @@
+import { store } from '../store'
+
 export interface PayLoad {
   type: string
   to: string
@@ -60,6 +62,8 @@ const handelRequest = (body) => {
   const fromDevice = body.from
   PAYLOAD.from = body.from
   PAYLOAD.to = body.to
+  store.set('desktop.to', body.to)
+  store.set('desktop.from', body.from)
   if (fromDevice && !windowsContainer['toolbar']) {
     createNotifyWindow({
       id: 'toolbar',

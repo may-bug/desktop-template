@@ -18,11 +18,9 @@ interface NotifyWindowParams {
 
 // 工具栏窗口参数类型
 interface ToolbarWindowParams {
-  id: string
   title: string
   width: number
   height: number
-  url: string
 }
 
 // 悬浮球窗口参数类型
@@ -36,19 +34,21 @@ interface FloatWindowParams {
 const createToolbarWindow = (params: ToolbarWindowParams): void => {
   // 最小化所有现有窗口
   BrowserWindow.getAllWindows().forEach((win) => {
-    if (!win.isDestroyed() && win !== windowsContainer[params.id]) {
+    if (!win.isDestroyed() && win !== windowsContainer['toolbar']) {
       win.minimize()
     }
   })
-  const { width } = screen.getPrimaryDisplay().workAreaSize
+  const margin = 10
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize
   const win = new BrowserWindow({
     title: params.title,
     width: params.width,
     height: params.height,
-    x: width - params.width - 20,
-    y: 50,
+    x: width - params.width - margin,
+    y: height - params.height - margin,
+    transparent: true,
+    icon: icon,
     frame: false,
-    alwaysOnTop: true,
     resizable: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -59,17 +59,42 @@ const createToolbarWindow = (params: ToolbarWindowParams): void => {
 
   // 加载页面
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    win.loadURL(`http://localhost:5173/#${params.url}`)
+    win.loadURL(`http://localhost:5173/#/toolbar`)
   } else {
-    win.loadFile(join(__dirname, '../renderer/index.html'), { hash: params.url })
+    win.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/toolbar' })
   }
-  windowsContainer[params.id] = win
+  win.on('ready-to-show', () => {
+    win.show()
+  })
+  windowsContainer['toolbar'] = win
 }
 
-// 创建通知栏窗口（自动最小化其他窗口）
+// 通知弹窗
 const createNotifyWindow = (params: NotifyWindowParams): void => {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize
   const margin = 10
+
+  // 如果窗口已存在并未被销毁，直接显示即可
+  if (windowsContainer['notify'] && !windowsContainer['notify']!.isDestroyed()) {
+    const win = windowsContainer['notify']!
+    win.setBounds({
+      width: params.width,
+      height: params.height,
+      x: width - params.width - margin,
+      y: height - params.height - margin
+    })
+    win.show()
+    win.focus()
+
+    // 重置自动隐藏逻辑
+    if (params.timeout) {
+      setTimeout(() => {
+        if (!win.isDestroyed()) win.hide()
+      }, params.timeout)
+    }
+
+    return
+  }
 
   const win = new BrowserWindow({
     title: params.title,
@@ -78,6 +103,7 @@ const createNotifyWindow = (params: NotifyWindowParams): void => {
     x: width - params.width - margin,
     y: height - params.height - margin,
     frame: false,
+    icon,
     alwaysOnTop: true,
     resizable: false,
     webPreferences: {
@@ -87,22 +113,26 @@ const createNotifyWindow = (params: NotifyWindowParams): void => {
     }
   })
 
-  // 加载页面
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    win.loadURL(`http://localhost:5173/#notify`)
+    win.loadURL(`http://localhost:5173/#/notify`)
   } else {
-    win.loadFile(join(__dirname, '../renderer/index.html'), { hash: 'notify' })
+    win.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/notify' })
   }
-  setTimeout(
-    () => {
-      windowsContainer[params.id].close()
-      clearTimeout(this)
-    },
-    params.timeout ? params.timeout : 10000
-  )
-  win.on('ready-to-show', () => {
+
+  win.once('ready-to-show', () => {
     win.show()
+
+    if (params.timeout) {
+      setTimeout(() => {
+        if (!win.isDestroyed()) win.hide()
+      }, params.timeout)
+    }
   })
+
+  win.on('closed', () => {
+    windowsContainer['notify'] = null
+  })
+
   windowsContainer['notify'] = win
 }
 
@@ -210,7 +240,6 @@ const createNewWindow = (
     width: width,
     height: height,
     darkTheme: true,
-    show: false,
     frame: false,
     parent: parent,
     transparent: true,
