@@ -24,4 +24,9 @@ const showPermissionError = () => {
   }
 }
 
-export { requestDesktopCapturePermission,showPermissionError }
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const getPlatform = async () => {
+  return await window.electron.ipcRenderer.invoke('get-platform')
+}
+
+export { requestDesktopCapturePermission, showPermissionError, getPlatform }

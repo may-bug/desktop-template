@@ -19,15 +19,16 @@ import { initScreen } from './screen'
 //@ts-ignore
 import { store } from './store'
 import { initClipboard } from './clipboard'
+import { initMessage } from './message'
 
-/**
- * 开启进程沙盒化
- */
 app.commandLine.appendSwitch('enable-usermedia-screen-capturing')
-app.commandLine.appendSwitch('use-fake-ui-for-media-stream') // 避免弹窗
+app.commandLine.appendSwitch('use-fake-ui-for-media-stream')
 if (process.platform === 'linux') {
   app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer')
 }
+/**
+ * 开启进程沙盒化
+ */
 app.enableSandbox()
 app.whenReady().then(async () => {
   /**
@@ -75,6 +76,10 @@ app.whenReady().then(async () => {
    */
   initScreen()
   /**
+   * 消息订阅
+   */
+  initMessage()
+  /**
    * 设置app信息
    */
   electronApp.setAppUserModelId('org.codelin.desktop')
@@ -98,11 +103,6 @@ app.whenReady().then(async () => {
   } else {
     createNewWindow('welcome', '欢迎', 800, 500, '/welcome', false, undefined)
   }
-
-  // app.on('activate', function () {
-  //   if (BrowserWindow.getAllWindows().length === 0) {
-  //   }
-  // })
 })
 
 app.on('window-all-closed', () => {

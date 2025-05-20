@@ -3,7 +3,8 @@ import { createWindow, closeWindow } from '../../utils/windows'
 import Header from '@renderer/components/Header.vue'
 import AccountLogin from './AccountLogin.vue'
 import QrLogin from './QrLogin.vue'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { isLoginAPI } from '../../api/auth'
 
 const showView = ref('account')
 /**
@@ -22,6 +23,15 @@ const handleClick = () => {
     showView.value = 'account'
   }
 }
+onMounted(() => {
+  isLoginAPI().then((res) => {
+    if (res.code === 200) {
+      setTimeout(() => {
+        openMainWindow()
+      }, 3000)
+    }
+  })
+})
 </script>
 
 <template>
@@ -41,7 +51,7 @@ const handleClick = () => {
   width: 100vw;
   height: 100vh;
   background-image: linear-gradient(to top, #dad4ec 0%, #dad4ec 1%, #f3e7e9 100%);
-  .link-container{
+  .link-container {
     width: 100%;
     position: absolute;
     bottom: 30px;

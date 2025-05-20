@@ -16,7 +16,6 @@ public class DeviceSessionService {
     private static final String USER_DEVICES_KEY_PREFIX = "user_devices:";  // 用户ID -> 设备列表
     private static final String DEVICE_SESSION_KEY_PREFIX = "device_session:"; // 设备ID -> SessionId
 
-    // 本地缓存，存储设备ID到 WebSocketSession，防止频繁 Redis 操作（可优化）
     private final ConcurrentHashMap<String, WebSocketSession> deviceSessionCache = new ConcurrentHashMap<>();
 
     public DeviceSessionService(RedisTemplate<String, Object> redisTemplate) {

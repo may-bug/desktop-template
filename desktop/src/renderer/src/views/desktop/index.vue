@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Message } from '@arco-design/web-vue'
-import { createWindow } from '../../utils/windows'
+import { createWindow, minimizeOthers } from '../../utils/windows'
 
 interface Device {
   id: string
@@ -19,14 +19,16 @@ const devices = ref<Device[]>([
 
 const selectedDeviceId = ref<string | null>(null)
 
-const selectedDevice = computed(() =>
-  devices.value.find((d) => d.id === selectedDeviceId.value) ?? null
+const selectedDevice = computed(
+  () => devices.value.find((d) => d.id === selectedDeviceId.value) ?? null
 )
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const handleSelectDevice = (id: string) => {
   selectedDeviceId.value = id
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const connectToDevice = () => {
   if (!selectedDevice.value) return
   if (selectedDevice.value.status === 'offline') {
@@ -34,7 +36,8 @@ const connectToDevice = () => {
     return
   }
   Message.success(`正在连接 ${selectedDevice.value.name}...`)
-  createWindow('remote','远程桌面', 980, 720, '/remote', true, undefined)
+  createWindow('remote', '远程桌面', 1225, 720, '/remote', true, undefined)
+  minimizeOthers('remote')
 }
 </script>
 
@@ -53,10 +56,7 @@ const connectToDevice = () => {
             >
               <div class="device-item">
                 <div class="device-name">{{ device.name }}</div>
-                <a-tag
-                  :color="device.status === 'online' ? 'green' : 'gray'"
-                  size="small"
-                >
+                <a-tag :color="device.status === 'online' ? 'green' : 'gray'" size="small">
                   {{ device.status }}
                 </a-tag>
               </div>
@@ -71,7 +71,11 @@ const connectToDevice = () => {
           <template v-if="selectedDevice">
             <h3>{{ selectedDevice.name }}</h3>
             <p>IP 地址：{{ selectedDevice.ip }}</p>
-            <p>状态：<a-tag :color="selectedDevice.status === 'online' ? 'green' : 'gray'">{{ selectedDevice.status }}</a-tag></p>
+            <p>
+              状态：<a-tag :color="selectedDevice.status === 'online' ? 'green' : 'gray'">{{
+                selectedDevice.status
+              }}</a-tag>
+            </p>
             <a-button
               type="primary"
               :disabled="selectedDevice.status !== 'online'"

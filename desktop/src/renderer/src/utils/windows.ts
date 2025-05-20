@@ -173,6 +173,11 @@ const floatDrag = (data) => {
   return window.electron.ipcRenderer.send('float-drag', data)
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const minimizeOthers=(id:string)=>{
+  window.electron.ipcRenderer.send('minimize-others',id)
+}
+
 export {
   createWindow,
   closeWindow,
@@ -189,5 +194,6 @@ export {
   setFloatClickThrough,
   floatDrag,
   createToolbarWindow,
-  createFloatWindow
+  createFloatWindow,
+  minimizeOthers
 }

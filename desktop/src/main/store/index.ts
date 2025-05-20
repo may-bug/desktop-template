@@ -14,13 +14,16 @@ const initStore = () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       store.set(key, value)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       logger.info({ score: 'store', value: ` store value set [key] ${key} [value] ${value}` })
       return true
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       logger.error({
         score: 'store',
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         value: ` store value set [key] ${key} [value] ${value} error ${e.message}`
       })
@@ -33,17 +36,21 @@ const initStore = () => {
    */
   ipcMain.handle('get-config', async (_event, key: string) => {
     try {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       const value = await store.get(key)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       logger.info({ score: 'store', value: ` store value get [key] ${key} [value] ${value}` })
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       return value
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       logger.error({
         score: 'store',
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         value: ` store value get [key] ${key} error ${e.message}`
       })

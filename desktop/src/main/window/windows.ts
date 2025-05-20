@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-nocheck
 import { join } from 'path'
 import { app, BrowserWindow, dialog, shell, screen } from 'electron'
@@ -6,6 +7,15 @@ import { is } from '@electron-toolkit/utils'
 import { logger } from '../log'
 
 const windowsContainer: { [key: string]: BrowserWindow } = {}
+
+// 工具栏窗口参数类型
+interface NotifyWindowParams {
+  id: string
+  title: string
+  width: number
+  height: number
+  timeout: number
+}
 
 // 工具栏窗口参数类型
 interface ToolbarWindowParams {
@@ -31,9 +41,7 @@ const createToolbarWindow = (params: ToolbarWindowParams): void => {
       win.minimize()
     }
   })
-
-  //@ts-ignore
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize
+  const { width } = screen.getPrimaryDisplay().workAreaSize
   const win = new BrowserWindow({
     title: params.title,
     width: params.width,
@@ -56,6 +64,43 @@ const createToolbarWindow = (params: ToolbarWindowParams): void => {
   } else {
     win.loadFile(join(__dirname, '../renderer/index.html'), { hash: params.url })
   }
+  windowsContainer[params.id] = win
+}
+
+// 创建通知栏窗口（自动最小化其他窗口）
+const createNotifyWindow = (params: NotifyWindowParams): void => {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize
+  const margin = 20
+
+  const win = new BrowserWindow({
+    title: params.title,
+    width: params.width,
+    height: params.height,
+    x: width - params.width - margin,
+    y: height - params.height - margin,
+    frame: false,
+    alwaysOnTop: true,
+    resizable: false,
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  })
+
+  // 加载页面
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    win.loadURL(`http://localhost:5173/#notify`)
+  } else {
+    win.loadFile(join(__dirname, '../renderer/index.html'), { hash: 'notify' })
+  }
+  setTimeout(
+    () => {
+      windowsContainer[params.id].close()
+      clearTimeout(this)
+    },
+    params.timeout ? params.timeout : 10000
+  )
   windowsContainer[params.id] = win
 }
 
@@ -104,6 +149,7 @@ const createFloatWindow = (params: FloatWindowParams): void => {
   let lastPosition = { x: 0, y: 0 }
 
   win.webContents.on('before-input-event', (_, input) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     if (input.type === 'mouseDown' && input.button === 'right') {
       isDragging = true
@@ -156,6 +202,7 @@ const createNewWindow = (
 ) => {
   const newWindow = new BrowserWindow({
     title: title,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     icon: icon,
     width: width,
@@ -164,6 +211,7 @@ const createNewWindow = (
     show: false,
     frame: false,
     parent: parent,
+    transparent: true,
     modal: parent !== undefined && parent !== null,
     resizable: resizable,
     autoHideMenuBar: true,
@@ -173,7 +221,7 @@ const createNewWindow = (
       sandbox: false,
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false,
+      webSecurity: false
     }
   })
 
@@ -185,12 +233,14 @@ const createNewWindow = (
     console.error('渲染进程崩溃:', {
       reason: details.reason,
       exitCode: details.exitCode,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       stack: details.stack
     })
     const options = {
       type: 'error',
       title: '进程崩溃了',
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       message: `这个进程已经崩溃.\n'
       reason: ${details.reason},
@@ -198,6 +248,7 @@ const createNewWindow = (
       stack: ${details.stack}`,
       buttons: ['重试', '关闭']
     }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     dialog.showMessageBox(windowsContainer[id], options).then(({ response }) => {
       if (response === 0) reloadWindow(id)
@@ -233,4 +284,10 @@ const reloadWindow = (id: string) => {
   windowsContainer[id].reload()
 }
 
-export { createNewWindow, createFloatWindow, createToolbarWindow, windowsContainer }
+export {
+  createNewWindow,
+  createFloatWindow,
+  createToolbarWindow,
+  createNotifyWindow,
+  windowsContainer
+}

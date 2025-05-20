@@ -1,7 +1,7 @@
 <template>
   <div class="screen-capture">
-    <div class="toolbar" v-if="!isFullscreen">
-      <a-select v-model="resolutionLabel" @change="onResolutionChange" style="width: 150px">
+    <div v-if="!isFullscreen" class="toolbar">
+      <a-select v-model="resolutionLabel" style="width: 150px" @change="onResolutionChange">
         <a-option v-for="res in resolutions" :key="res.label" :value="res.label">
           {{ res.label }}
         </a-option>
@@ -9,7 +9,7 @@
       <a-button @click="toggleFullscreen">全屏</a-button>
     </div>
     <div class="video-wrapper">
-      <video ref="videoRef" autoplay="true" playsinline></video>
+      <video ref="videoRef" autoplay="autoplay" playsinline></video>
     </div>
   </div>
 </template>

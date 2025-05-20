@@ -6,10 +6,17 @@ const loginByAccountApi = (data) => {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const loginOutAPI=()=>{
+const loginOutAPI = () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   return http.post('/account/logout')
 }
 
-export { loginByAccountApi ,loginOutAPI }
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const isLoginAPI = () => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  return http.get('/account/isLogin')
+}
+
+export { loginByAccountApi, loginOutAPI, isLoginAPI }

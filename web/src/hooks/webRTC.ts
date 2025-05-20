@@ -1,135 +1,159 @@
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 
-export interface SignalMessage {
-    type: string
-    data: any
+interface UseWebRTCShareOptions {
+    signalingUrl: string
+    token: string
+    uid: string
+    deviceId: string
 }
 
-interface UseRemoteDesktopOptions {
-    isHost: boolean // true 桌面端(屏幕采集端)，false 控制端
-    sendSignal: (msg: SignalMessage) => void // 发送信令的函数，必须传入
-    onSignal: (callback: (msg: SignalMessage) => void) => void // 监听信令的函数，必须传入
-}
-
-export function useRemoteDesktop({ isHost, sendSignal, onSignal }: UseRemoteDesktopOptions) {
-    const localStream = ref<MediaStream | null>(null)
-    const remoteStream = ref<MediaStream | null>(null)
-    const connected = ref(false)
-    const pc = ref<RTCPeerConnection | null>(null)
-
-    // ICE servers 推荐添加自己的 TURN 服务，下面只是示例 stun
-    const iceServers = [{ urls: 'stun:stun.l.google.com:19302' }]
-
-    // 创建 PeerConnection
-    const createPeerConnection = () => {
-        const connection = new RTCPeerConnection({ iceServers })
-
-        connection.onicecandidate = (event) => {
-            if (event.candidate) {
-                sendSignal({ type: 'ice-candidate', data: event.candidate })
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function useWebRTCShare(options: UseWebRTCShareOptions) {
+    const peer = new RTCPeerConnection({
+        iceServers: [
+            {
+                urls: 'turn:turn.tecgui.cn:3478',
+                username: 'tecgui',
+                credential: 'tecgui'
             }
-        }
-
-        connection.onconnectionstatechange = () => {
-            if (connection.connectionState === 'connected') {
-                connected.value = true
-            } else if (
-                connection.connectionState === 'disconnected' ||
-                connection.connectionState === 'failed' ||
-                connection.connectionState === 'closed'
-            ) {
-                connected.value = false
-            }
-        }
-
-        if (!isHost) {
-            // 控制端接收远程流
-            const remote = new MediaStream()
-            remoteStream.value = remote
-            connection.ontrack = (event) => {
-                event.streams[0].getTracks().forEach((track) => {
-                    remote.addTrack(track)
-                })
-            }
-        }
-
-        return connection
-    }
-
-    // 处理信令消息
-    const handleSignal = async (msg: SignalMessage) => {
-        if (!pc.value) return
-        const connection = pc.value
-
-        switch (msg.type) {
-            case 'offer':
-                if (!isHost) {
-                    await connection.setRemoteDescription(new RTCSessionDescription(msg.data))
-                    const answer = await connection.createAnswer()
-                    await connection.setLocalDescription(answer)
-                    sendSignal({ type: 'answer', data: answer })
-                }
-                break
-            case 'answer':
-                if (isHost) {
-                    await connection.setRemoteDescription(new RTCSessionDescription(msg.data))
-                }
-                break
-            case 'ice-candidate':
-                if (msg.data) {
-                    try {
-                        await connection.addIceCandidate(new RTCIceCandidate(msg.data))
-                    } catch (e) {
-                        console.warn('添加 ICE Candidate 失败', e)
-                    }
-                }
-                break
-        }
-    }
-
-    const startConnection = async () => {
-        pc.value = createPeerConnection()
-
-        onSignal(handleSignal)
-
-        if (isHost) {
-            // 桌面端采集屏幕流
-            try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false })
-                localStream.value = stream
-                stream.getTracks().forEach((track) => pc.value!.addTrack(track, stream))
-
-                const offer = await pc.value.createOffer()
-                await pc.value.setLocalDescription(offer)
-                sendSignal({ type: 'offer', data: offer })
-            } catch (e) {
-                console.error('获取屏幕流失败:', e)
-            }
-        }
-    }
-
-    const closeConnection = () => {
-        localStream.value?.getTracks().forEach((t) => t.stop())
-        remoteStream.value?.getTracks().forEach((t) => t.stop())
-        pc.value?.close()
-        pc.value = null
-        localStream.value = null
-        remoteStream.value = null
-        connected.value = false
-    }
-
-    onMounted(() => {
-        startConnection()
+        ]
     })
 
+    const ws = ref<WebSocket | null>(null)
+    const localStream = ref<MediaStream | null>(null)
+    const disconnected = ref(false)
+
+    const maxReconnectAttempts = 5
+    let reconnectAttempts = 0
+    let heartbeatInterval: ReturnType<typeof setInterval> | null = null
+    let hasSentOffer = false
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const sendSignal = (data: unknown) => {
+        if (ws.value?.readyState === WebSocket.OPEN) {
+            ws.value.send(JSON.stringify(data))
+        }
+    }
+
+    const initSignaling = (): Promise<void> => {
+        return new Promise((resolve) => {
+            const url = `${options.signalingUrl}?token=${options.token}&uid=${options.uid}&deviceId=${options.deviceId}`
+            ws.value = new WebSocket(url)
+
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            ws.value.onopen = () => {
+                disconnected.value = false
+                reconnectAttempts = 0
+                startHeartbeat()
+                resolve()
+            }
+
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            ws.value.onmessage = async (event) => {
+                const msg = JSON.parse(event.data)
+
+                if (msg.type === 'answer') {
+                    await peer.setRemoteDescription(new RTCSessionDescription(msg.answer))
+                } else if (msg.type === 'candidate') {
+                    await peer.addIceCandidate(new RTCIceCandidate(msg.candidate))
+                } else if (msg.type === 'pong') {
+                    // pong received
+                }
+            }
+
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            ws.value.onerror = () => {
+                console.warn('WebSocket error, will attempt reconnect...')
+            }
+
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            ws.value.onclose = () => {
+                console.warn('WebSocket closed')
+                stopHeartbeat()
+                disconnected.value = true
+
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    setTimeout(() => {
+                        reconnectAttempts++
+                        initSignaling().then(() => {
+                            if (!hasSentOffer) {
+                                createAndSendOffer()
+                            }
+                        })
+                    }, 2000)
+                }
+            }
+
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            peer.onicecandidate = (e) => {
+                if (e.candidate) {
+                    sendSignal({
+                        type: 'candidate',
+                        to: options.deviceId,
+                        candidate: e.candidate
+                    })
+                }
+            }
+        })
+    }
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const createAndSendOffer = async () => {
+        const offer = await peer.createOffer()
+        await peer.setLocalDescription(offer)
+        hasSentOffer = true
+
+        sendSignal({
+            type: 'offer',
+            from: options.uid,
+            to: options.deviceId,
+            offer
+        })
+    }
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const startHeartbeat = () => {
+        stopHeartbeat()
+        heartbeatInterval = setInterval(() => {
+            if (ws.value?.readyState === WebSocket.OPEN) {
+                ws.value.send(JSON.stringify({ type: 'ping' }))
+            }
+        }, 20000)
+    }
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const stopHeartbeat = () => {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval)
+            heartbeatInterval = null
+        }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const startSharing = async () => {
+        await initSignaling()
+        await createAndSendOffer()
+
+        return localStream
+    }
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const stopSharing = () => {
+        localStream.value?.getTracks().forEach((track) => track.stop())
+        peer.close()
+        ws.value?.close()
+        stopHeartbeat()
+        hasSentOffer = false
+    }
+
     onBeforeUnmount(() => {
-        closeConnection()
+        stopSharing()
     })
 
     return {
         localStream,
-        remoteStream,
-        connected,
-        closeConnection
+        disconnected,
+        startSharing,
+        stopSharing
     }
 }

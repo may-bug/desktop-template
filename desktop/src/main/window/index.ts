@@ -1,6 +1,12 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { shell } from 'electron'
-import { createFloatWindow, createNewWindow, createToolbarWindow, windowsContainer } from './windows'
+import {
+  createFloatWindow,
+  createNewWindow,
+  createNotifyWindow,
+  createToolbarWindow,
+  windowsContainer
+} from './windows'
 import { logger } from '../log'
 import * as url from 'node:url'
 
@@ -128,6 +134,15 @@ const initWindows = () => {
     win.setPosition(x + deltaX, y + deltaY)
   })
   /**
+   * 创建通知栏窗口
+   */
+  ipcMain.on(
+    'create-window-notify',
+    (event, id: string, title: string, width: number, height: number, timeout: number) => {
+      createNotifyWindow({ id: id, title: title, width: width, height: height, timeout: timeout })
+    }
+  )
+  /**
    * 创建工具栏窗口
    */
   ipcMain.on(
@@ -148,8 +163,8 @@ const initWindows = () => {
   /**
    * 最小化其它窗口
    */
-  ipcMain.on('toolbar-minimize-others', (event) => {
-    const currentWindow = BrowserWindow.fromWebContents(event.sender)!
+  ipcMain.on('minimize-others', (event, id) => {
+    const currentWindow = windowsContainer[id]
     minimizeOtherWindows(currentWindow)
   })
   /**

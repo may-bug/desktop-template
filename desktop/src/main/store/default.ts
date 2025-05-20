@@ -1,6 +1,7 @@
 import Store from 'electron-store'
 import { app } from 'electron'
 import { logger } from '../log'
+import { generateNineDigitNumber } from '../utils'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const initialState = (store, key, value) => {
@@ -26,6 +27,7 @@ const createStore = () => {
   initialState(store, 'welcome', false)
   initialState(store, 'remember_closed', false)
   initialState(store, 'closed_value', false)
+  initialState(store, 'deviceId', generateNineDigitNumber())
   return store
 }
 

@@ -1,4 +1,3 @@
-// src/composables/useWebRTC.ts
 import { ref, onUnmounted, watch } from 'vue'
 import { useSignalingStore } from '../stores/signaling'
 

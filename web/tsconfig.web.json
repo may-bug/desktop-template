@@ -1,0 +1,16 @@
+{
+  "include": [
+    "/src/env.d.ts",
+    "/src/**/*",
+    "/src/**/*.vue",
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@renderer/*": [
+        "/src/*"
+      ]
+    }
+  }
+}
