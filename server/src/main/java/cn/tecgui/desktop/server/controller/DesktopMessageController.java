@@ -49,6 +49,13 @@ public class DesktopMessageController {
                 msg.setInfo(message.getInfo());
                 messagingTemplate.convertAndSendToUser(message.getFrom(), "/queue/control/desktop/notify", msg);
                 break;
+            case "timeout":
+                msg.setTo(message.getTo());
+                msg.setFrom(message.getFrom());
+                msg.setType(message.getType());
+                msg.setInfo(message.getInfo());
+                messagingTemplate.convertAndSendToUser(message.getFrom(), "/queue/control/desktop/notify", msg);
+                break;
             default:
                 break;
         }

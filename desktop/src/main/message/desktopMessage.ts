@@ -11,6 +11,7 @@ import { Client } from '@stomp/stompjs'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const WebSocket = require('ws')
 import { createNotifyWindow, windowsContainer } from '../window/windows'
+import { ipcMain } from 'electron'
 let client: Client | null = null
 const PAYLOAD = {
   type: 'payload',
@@ -70,7 +71,7 @@ const handelRequest = (body) => {
       title: '控制请求',
       width: 300,
       height: 200,
-      timeout: 60 * 1000
+      timeout: 80 * 1000
     })
   }
 }

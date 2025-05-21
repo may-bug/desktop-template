@@ -5,7 +5,7 @@
       :style="props.isFixed ? 'position:fixed;top:0;width:100%;left:0;z-index:2000' : ''"
     >
       <div class="title">
-        <span>{{ props.windowTitle }}</span>
+        <span>{{ props.title }}</span>
       </div>
       <div class="move"></div>
       <div class="icon close" @click="handleClosed"><Icon name="base-Close" :size="12" /></div>
@@ -52,7 +52,6 @@ const handleClosed = () => {
 
 .move {
   flex: 1;
-  -webkit-app-region: drag;
 }
 
 .icon:hover {
@@ -74,9 +73,10 @@ const handleClosed = () => {
 }
 
 .title {
-  line-height: 15px;
+  line-height: 20px;
   padding: 5px 0 5px 15px;
   -webkit-app-region: drag;
   cursor: pointer;
+  font-size: 14px;
 }
 </style>

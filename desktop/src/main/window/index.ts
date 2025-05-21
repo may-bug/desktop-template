@@ -153,7 +153,7 @@ const initWindows = () => {
    * 创建工具栏窗口
    */
   ipcMain.on('create-window-toolbar', (event, title: string, width: number, height: number) => {
-    createToolbarWindow(title, width, height)
+    createToolbarWindow({ title: title, width: width, height: height })
   })
   /**
    * 创建悬浮球

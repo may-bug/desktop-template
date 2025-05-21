@@ -2,9 +2,7 @@
 import {ref} from "vue";
 import {connectToDevice} from "../../../hooks/useDesktopEmit";
 import {Message} from "@arco-design/web-vue";
-import {useDataStore} from "../../../stores/useDataStore.ts";
 
-const dataStore=useDataStore();
 const inputDeviceId=ref("155150264")
 const connectDevice=()=>{
   const trimmedId = inputDeviceId.value.trim()
@@ -12,8 +10,7 @@ const connectDevice=()=>{
     Message.warning('请输入设备 ID')
     return
   }
-  dataStore.setToDeviceId(trimmedId)
-  connectToDevice()
+  connectToDevice(trimmedId)
 }
 </script>
 

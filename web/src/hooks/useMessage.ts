@@ -31,6 +31,11 @@ const connectWebControl = (token: string, deviceId: string): Promise<void> => {
                         case 'reject':
                             handleReject(body)
                             break
+                        case 'timeout':
+                            handleTimeout(body)
+                            break
+                        default:
+                            break
                     }
                 })
                 resolve()
@@ -70,6 +75,12 @@ const handleAnswer = (val): void => {
 const handleReject = (val): void => {
     emit.emit('desktop', {
         type:"reject",
+        body:val
+    })
+}
+const handleTimeout = (val): void => {
+    emit.emit('desktop', {
+        type:"timeout",
         body:val
     })
 }

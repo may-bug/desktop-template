@@ -49,7 +49,7 @@ const createToolbarWindow = (params: ToolbarWindowParams): void => {
     height: params.height,
     x: width - params.width - margin,
     y: height - params.height - margin,
-    transparent: true,
+    transparent: false,
     icon: icon,
     frame: false,
     resizable: false,
@@ -69,11 +69,14 @@ const createToolbarWindow = (params: ToolbarWindowParams): void => {
   win.on('ready-to-show', () => {
     win.show()
   })
+  win.on('close', () => {
+    delete windowsContainer['toolbar']
+  })
   windowsContainer['toolbar'] = win
 }
 
 /**
- * 解决导出 问题
+ * 解决导出问题
  */
 const setNotifyShow: void = (val: boolean) => {
   isShowing = val
@@ -116,22 +119,25 @@ const showNextNotify = () => {
     } else {
       notifyWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/notify' })
     }
-  }
 
+    // 只绑定一次，确保每次页面加载完成时都会发事件
+    notifyWindow.webContents.on('did-finish-load', () => {
+      notifyWindow.webContents.send('notify-reset')
+    })
+  }
+  notifyWindow.webContents.send('notify-reset')
   notifyWindow.setBounds({
     width: params.width,
     height: params.height,
     x: screen.getPrimaryDisplay().workAreaSize.width - params.width - 10,
     y: screen.getPrimaryDisplay().workAreaSize.height - params.height - 10
   })
-
   notifyWindow.show()
   notifyWindow.focus()
-
   setTimeout(() => {
-    notifyWindow?.hide()
-    showNextNotify()
-  }, params.timeout || 3000)
+      notifyWindow?.hide()
+      showNextNotify()
+  }, params.timeout || 60 * 1000)
 }
 // 通知弹窗
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -157,7 +163,7 @@ const createFloatWindow = (params: FloatWindowParams): void => {
     height: params.size,
     x: defaultPos.x,
     y: defaultPos.y,
-    transparent: true,
+    transparent: false,
     focusable: false,
     frame: false,
     hasShadow: false,
