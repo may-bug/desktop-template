@@ -9,6 +9,7 @@
     "afterPack": "./scripts/removeLocales.js",
     "artifactName": "CodeLin-${os}-${arch}-${version}.${ext}",
     "win": {
+      "requestedExecutionLevel": "requireAdministrator",
       "target": "nsis"
     },
     "nsis": {
@@ -66,12 +67,14 @@
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
     "build:linux": "npm run build && electron-builder --linux",
-    "build:all": "npm run build:linux && npm run build:win"
+    "build:all": "npm run build:linux && npm run build:win",
+    "rebuild:robotjs": "electron-rebuild -f -w @node-robotics/robotjs"
   },
   "dependencies": {
     "@arco-design/web-vue": "^2.56.3",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
+    "@nut-tree/nut-js": "^4.2.0",
     "@stomp/stompjs": "^7.1.1",
     "axios": "1.8.2",
     "electron-log": "^5.3.0",

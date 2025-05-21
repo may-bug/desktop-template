@@ -38,15 +38,14 @@ import {useDataStore} from "../../stores/useDataStore.ts";
 
 const dataStore = useDataStore()
 const form = ref({
-  account: '',
-  password: '',
+  account: 'admin',
+  password: '123456',
 });
 
 const loading = ref(false);
 
 const onSubmit = () => {
       loading.value = true;
-      console.log(form.value)
       loginByAccountAPI(form.value).then(res => {
         if(res.code === 200) {
           dataStore.setUid(res.data.uid);

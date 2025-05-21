@@ -19,10 +19,18 @@ emit.on("desktop",handleResult)
 </script>
 
 <template>
+  <div class="container">
   <a-spin :loading="loading" :size="32" tip="正在连接中...">
   </a-spin>
+  </div>
 </template>
 
 <style scoped>
-
+.container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>

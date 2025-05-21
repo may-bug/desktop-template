@@ -11,7 +11,7 @@
 import Notify from '../../components/Notify.vue'
 import { onMounted, ref } from 'vue'
 import { sendDesktopMessage } from '../../utils/message'
-import { createToolbarWindow} from '../../utils/windows'
+import { createToolbarWindow } from '../../utils/windows'
 
 const time = ref<number>(60)
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

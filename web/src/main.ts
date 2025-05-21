@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import './style.css'
+import './assets/style/base.scss'
 import '@arco-design/web-vue/dist/arco.css';
 import App from './App.vue'
 import {router} from './router'

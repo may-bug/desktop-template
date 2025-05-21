@@ -5,11 +5,18 @@ import {
   createNewWindow,
   createNotifyWindow,
   createToolbarWindow,
+  notificationQueue,
+  notifyWindow,
+  setNotifyShow,
+  showNextNotify,
   windowsContainer
 } from './windows'
 import { logger } from '../log'
 import * as url from 'node:url'
 
+/**
+ * 创建窗口IPC
+ */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const initWindows = () => {
   //创建普通窗口
@@ -170,14 +177,11 @@ const initWindows = () => {
   ipcMain.handle('float-drag', (event, { screenX, screenY }) => {
     const win = BrowserWindow.fromWebContents(event.sender)!
     const display = screen.getDisplayNearestPoint({ x: screenX, y: screenY })
-
     // 计算边界
     const maxX = display.bounds.x + display.bounds.width - win.getSize()[0]
     const maxY = display.bounds.y + display.bounds.height - win.getSize()[1]
-
     const clampedX = Math.max(display.bounds.x, Math.min(screenX, maxX))
     const clampedY = Math.max(display.bounds.y, Math.min(screenY, maxY))
-
     console.log('New Position:', clampedX, clampedY)
     win.setPosition(clampedX, clampedY, true)
   })
@@ -207,6 +211,27 @@ const initWindows = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ipcMain.on('exit-app', async (_event) => {
     app.quit()
+  })
+
+  /**
+   * 通知窗口操作
+   */
+  ipcMain.on('notify-close', () => {
+    if (notifyWindow && !notifyWindow.isDestroyed()) {
+      notifyWindow.hide()
+      showNextNotify()
+    }
+  })
+
+  /**
+   * 忽略所有通知
+   */
+  ipcMain.on('notify-clear-all', () => {
+    notificationQueue.length = 0
+    if (notifyWindow && !notifyWindow.isDestroyed()) {
+      notifyWindow.hide()
+    }
+    setNotifyShow(false)
   })
 }
 

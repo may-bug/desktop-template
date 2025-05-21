@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   server: {
+    allowedHosts:["net.tecgui.cn"],
     proxy: {
       '/api': {
         target: 'https://server.tecgui.cn',

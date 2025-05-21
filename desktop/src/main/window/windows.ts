@@ -6,7 +6,10 @@ import icon from '../../../resources/icon.png?asset'
 import { is } from '@electron-toolkit/utils'
 import { logger } from '../log'
 
+const notificationQueue: NotifyWindowParams[] = []
+let notifyWindow: BrowserWindow | null = null
 const windowsContainer: { [key: string]: BrowserWindow } = {}
+let isShowing = false
 
 // 工具栏窗口参数类型
 interface NotifyWindowParams {
@@ -69,71 +72,74 @@ const createToolbarWindow = (params: ToolbarWindowParams): void => {
   windowsContainer['toolbar'] = win
 }
 
-// 通知弹窗
-const createNotifyWindow = (params: NotifyWindowParams): void => {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize
-  const margin = 10
-
-  // 如果窗口已存在并未被销毁，直接显示即可
-  if (windowsContainer['notify'] && !windowsContainer['notify']!.isDestroyed()) {
-    const win = windowsContainer['notify']!
-    win.setBounds({
-      width: params.width,
-      height: params.height,
-      x: width - params.width - margin,
-      y: height - params.height - margin
-    })
-    win.show()
-    win.focus()
-
-    // 重置自动隐藏逻辑
-    if (params.timeout) {
-      setTimeout(() => {
-        if (!win.isDestroyed()) win.hide()
-      }, params.timeout)
+/**
+ * 解决导出 问题
+ */
+const setNotifyShow: void = (val: boolean) => {
+  isShowing = val
+}
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const showNextNotify = () => {
+  if (notificationQueue.length === 0) {
+    isShowing = false
+    if (notifyWindow) {
+      notifyWindow.hide()
     }
-
     return
   }
 
-  const win = new BrowserWindow({
-    title: params.title,
-    width: params.width,
-    height: params.height,
-    x: width - params.width - margin,
-    y: height - params.height - margin,
-    frame: false,
-    icon,
-    alwaysOnTop: true,
-    resizable: false,
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      nodeIntegration: false,
-      contextIsolation: true
-    }
-  })
+  isShowing = true
+  const params = notificationQueue.shift()!
+  if (!notifyWindow) {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize
+    const margin = 10
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    win.loadURL(`http://localhost:5173/#/notify`)
-  } else {
-    win.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/notify' })
+    notifyWindow = new BrowserWindow({
+      title: params.title,
+      width: params.width,
+      height: params.height,
+      x: width - params.width - margin,
+      y: height - params.height - margin,
+      frame: false,
+      icon,
+      alwaysOnTop: true,
+      resizable: false,
+      webPreferences: {
+        preload: join(__dirname, '../preload/index.js'),
+        nodeIntegration: false,
+        contextIsolation: true
+      }
+    })
+
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+      notifyWindow.loadURL(`http://localhost:5173/#/notify`)
+    } else {
+      notifyWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/notify' })
+    }
   }
 
-  win.once('ready-to-show', () => {
-    win.show()
-
-    if (params.timeout) {
-      setTimeout(() => {
-        if (!win.isDestroyed()) win.hide()
-      }, params.timeout)
-    }
+  notifyWindow.setBounds({
+    width: params.width,
+    height: params.height,
+    x: screen.getPrimaryDisplay().workAreaSize.width - params.width - 10,
+    y: screen.getPrimaryDisplay().workAreaSize.height - params.height - 10
   })
 
-  win.on('closed', () => {
-    windowsContainer['notify'] = null
-  })
+  notifyWindow.show()
+  notifyWindow.focus()
 
-  windowsContainer['notify'] = win
+  setTimeout(() => {
+    notifyWindow?.hide()
+    showNextNotify()
+  }, params.timeout || 3000)
+}
+// 通知弹窗
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const createNotifyWindow = (params: NotifyWindowParams) => {
+  notificationQueue.push(params)
+  if (!isShowing) {
+    showNextNotify()
+  }
 }
 
 /**
@@ -242,7 +248,8 @@ const createNewWindow = (
     darkTheme: true,
     frame: false,
     parent: parent,
-    transparent: true,
+    transparent: false,
+    hasShadow: true,
     modal: parent !== undefined && parent !== null,
     resizable: resizable,
     autoHideMenuBar: true,
@@ -320,5 +327,9 @@ export {
   createFloatWindow,
   createToolbarWindow,
   createNotifyWindow,
-  windowsContainer
+  windowsContainer,
+  notificationQueue,
+  notifyWindow,
+  showNextNotify,
+  setNotifyShow
 }

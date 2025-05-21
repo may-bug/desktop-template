@@ -1,6 +1,7 @@
 <template>
   <div class="toolbar">
     <Header window-id="toolbar" :is-hide="true" :is-min-max="false" />
+    <video ref="videoRef"></video>
   </div>
 </template>
 
@@ -14,6 +15,7 @@ import { useWebRTCShare } from '../../hook/useWebRTCShare'
 import { useDataStore } from '../../stores/useDataStore'
 import { getValue } from '../../utils/store'
 
+const videoRef = ref()
 const from = ref('')
 const dataStore = useDataStore()
 let webRTCShare = useWebRTCShare({
@@ -63,15 +65,15 @@ const startRecord = async () => {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const handleStream = (stream: MediaStream) => {
-  // if (videoRef.value) {
-  //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //   //@ts-ignore
-  //   videoRef.value.srcObject = stream
-  //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //   //@ts-ignore
-  //   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  //   videoRef.value.onloadedmetadata = () => videoRef.value.play()
-  // }
+  if (videoRef.value) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    videoRef.value.srcObject = stream
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    videoRef.value.onloadedmetadata = () => videoRef.value.play()
+  }
   webRTCShare.localStream.value = stream
   webRTCShare.startSharing()
 }

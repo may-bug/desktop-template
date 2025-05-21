@@ -11,9 +11,10 @@ interface UseWebRTCWatchOptions {
 export function useWebRTCWatch(options: UseWebRTCWatchOptions) {
     const remoteStream = ref<MediaStream | null>(null)
     const disconnected = ref(false)
-
+    let dataChannel
     const peer = new RTCPeerConnection({
         iceServers: [
+            { urls: 'stun:turn.tecgui.cn:3478' },
             {
                 urls: 'turn:turn.tecgui.cn:3478',
                 username: 'tecgui',
@@ -21,7 +22,6 @@ export function useWebRTCWatch(options: UseWebRTCWatchOptions) {
             }
         ]
     })
-
     const ws = ref<WebSocket | null>(null)
     const maxReconnectAttempts = 5
     let reconnectAttempts = 0
@@ -35,6 +35,7 @@ export function useWebRTCWatch(options: UseWebRTCWatchOptions) {
 
     // 观看端主动发起 offer
     const createAndSendOffer = async () => {
+        peer.addTransceiver('video', { direction: 'recvonly' })
         const offer = await peer.createOffer()
         await peer.setLocalDescription(offer)
 
@@ -95,6 +96,27 @@ export function useWebRTCWatch(options: UseWebRTCWatchOptions) {
                 }
             }
 
+            peer.onicecandidate = (e) => {
+                if (e.candidate) {
+                    sendSignal({
+                        type: 'candidate',
+                        from: options.deviceId,
+                        to: options.to,
+                        candidate: e.candidate
+                    })
+                }
+            }
+
+            peer.ontrack = (e) => {
+                console.log("视频通道",e.track)
+                if (!remoteStream.value) {
+                    remoteStream.value = new MediaStream()
+                }
+                remoteStream.value.addTrack(e.track)
+            }
+
+            dataChannel = peer.createDataChannel('control-channel')
+
             peer.ondatachannel = (event) => {
                 const dataChannel = event.channel
                 console.log('DataChannel received:', dataChannel.label)
@@ -114,24 +136,6 @@ export function useWebRTCWatch(options: UseWebRTCWatchOptions) {
                 dataChannel.onerror = (error) => {
                     console.error('DataChannel error:', error)
                 }
-            }
-
-            peer.onicecandidate = (e) => {
-                if (e.candidate) {
-                    sendSignal({
-                        type: 'candidate',
-                        from: options.deviceId,
-                        to: options.to,
-                        candidate: e.candidate
-                    })
-                }
-            }
-
-            peer.ontrack = (e) => {
-                if (!remoteStream.value) {
-                    remoteStream.value = new MediaStream()
-                }
-                remoteStream.value.addTrack(e.track)
             }
         })
     }
@@ -164,6 +168,15 @@ export function useWebRTCWatch(options: UseWebRTCWatchOptions) {
         stopHeartbeat()
     }
 
+    const sendDataChannelMessage = (message) => {
+        if (dataChannel && dataChannel.readyState === 'open') {
+            console.log(message)
+            dataChannel.send(JSON.stringify(message))
+        } else {
+            console.warn('DataChannel 未连接或未打开')
+        }
+    }
+
     onBeforeUnmount(() => {
         stopWatching()
     })
@@ -172,6 +185,7 @@ export function useWebRTCWatch(options: UseWebRTCWatchOptions) {
         remoteStream,
         disconnected,
         startWatching,
-        stopWatching
+        stopWatching,
+        sendDataChannelMessage,
     }
 }

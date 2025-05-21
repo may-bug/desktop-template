@@ -30,7 +30,7 @@ const showMore = ref<boolean>(false)
 
 const bottomMenus = ref([
   {
-    name: 'menu-more',
+    name: 'menu-pc',
     value: 'desktop'
   },
   {

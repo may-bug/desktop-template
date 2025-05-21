@@ -12,6 +12,7 @@ interface UseWebRTCShareOptions {
 export function useWebRTCShare(options: UseWebRTCShareOptions) {
   const peer = new RTCPeerConnection({
     iceServers: [
+      { urls: 'stun:turn.tecgui.cn:3478' },
       {
         urls: 'turn:turn.tecgui.cn:3478',
         username: 'tecgui',
@@ -23,6 +24,7 @@ export function useWebRTCShare(options: UseWebRTCShareOptions) {
   const ws = ref<WebSocket | null>(null)
   const localStream = ref<MediaStream | null>(null)
   const disconnected = ref(false)
+  const from = ref('')
 
   let heartbeatInterval: ReturnType<typeof setInterval> | null = null
 
@@ -50,23 +52,10 @@ export function useWebRTCShare(options: UseWebRTCShareOptions) {
         const msg = JSON.parse(event.data)
 
         if (msg.type === 'offer') {
-          // 控制端发来 offer，设置远端描述
           await peer.setRemoteDescription(new RTCSessionDescription(msg.offer))
-
-          // 3. 创建备用 DataChannel
-          const dataChannel = peer.createDataChannel('control-channel')
-
-          // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-          dataChannel.onopen = () => {
-            console.log('DataChannel opened')
-          }
-          // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-          dataChannel.onmessage = (event) => {
-            console.log('Received message on data channel:', event.data)
-          }
-          // 创建本地 answer 并发送回控制端
           const answer = await peer.createAnswer()
           await peer.setLocalDescription(answer)
+          from.value = msg.from
 
           sendSignal({
             type: 'answer',
@@ -98,13 +87,51 @@ export function useWebRTCShare(options: UseWebRTCShareOptions) {
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       peer.onicecandidate = (e) => {
         if (e.candidate) {
-          console.log('Sending ICE candidate:', e.candidate)
           sendSignal({
             type: 'candidate',
-            to: options.to, // 可根据需要指定对端 deviceId
+            to: from.value,
             from: options.deviceId,
             candidate: e.candidate
           })
+        }
+      }
+
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      peer.ondatachannel = (event) => {
+        const dataChannel = event.channel
+        console.log('接收到 DataChannel:', dataChannel.label)
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        dataChannel.onopen = () => {
+          console.log('DataChannel 已连接')
+        }
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        dataChannel.onmessage = (e) => {
+          console.log('收到 DataChannel 消息:', e.data)
+          try {
+            const payload = JSON.parse(e.data)
+
+            // 校验基本结构
+            if (payload && payload.type === 'input') {
+              // 通过 IPC 将事件传递给主进程
+              window.electron.ipcRenderer.send('remote-control-event', payload.payload)
+            } else {
+              console.warn('收到未知格式的控制消息:', payload)
+            }
+          } catch (err) {
+            console.error('控制命令解析失败:', err)
+          }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        dataChannel.onerror = (error) => {
+          console.error('DataChannel 错误:', error)
+        }
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        dataChannel.onclose = () => {
+          console.log('DataChannel 已关闭')
         }
       }
     })
@@ -112,12 +139,13 @@ export function useWebRTCShare(options: UseWebRTCShareOptions) {
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const startSharing = async () => {
-    await initSignaling()
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
-      localStream.value = stream
-      stream.getTracks().forEach((track) => peer.addTrack(track, stream))
+    localStream.value.getTracks().forEach((track) => {
+      console.log('添加轨道:', track.kind)
+      peer.addTrack(track, localStream.value)
     })
-    return localStream
+    await initSignaling()
+    console.log('Senders:', peer.getSenders())
+    return localStream.value
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

@@ -3,7 +3,7 @@ import {ref} from "vue";
 import {connectToDevice} from "../../../hooks/useDesktopEmit";
 import {Message} from "@arco-design/web-vue";
 
-const inputDeviceId=ref("")
+const inputDeviceId=ref("155150264")
 const connectDevice=()=>{
   const trimmedId = inputDeviceId.value.trim()
   if (!trimmedId) {
