@@ -1,4 +1,6 @@
-import { ref, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
+import { getPlatform } from '../utils/permission'
+import { getDesktopSources } from '../utils/screen'
 
 interface UseWebRTCShareOptions {
   signalingUrl: string
@@ -139,13 +141,33 @@ export function useWebRTCShare(options: UseWebRTCShareOptions) {
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const startSharing = async () => {
-    localStream.value.getTracks().forEach((track) => {
-      console.log('添加轨道:', track.kind)
-      peer.addTrack(track, localStream.value)
-    })
-    await initSignaling()
-    console.log('Senders:', peer.getSenders())
-    return localStream.value
+    const isLinux = (await getPlatform()) === 'Linux'
+    if (isLinux) {
+      const sources = await getDesktopSources({ types: ['screen'] })
+      const selectedSource = sources[0]
+      localStream.value = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: selectedSource.id,
+            // minWidth: 1280,
+            minWidth: 1960,
+            maxWidth: 3840,
+            // minHeight: 720,
+            minHeight: 1080,
+            maxHeight: 2160
+          }
+        }
+      })
+      localStream.value.getTracks().forEach((track) => {
+        console.log('添加轨道:', track.kind)
+        peer.addTrack(track, localStream.value)
+      })
+      await initSignaling()
+      console.log('Senders:', peer.getSenders())
+      return localStream.value
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
