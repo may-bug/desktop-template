@@ -1,6 +1,7 @@
 import { onBeforeUnmount, ref } from 'vue'
 import { getPlatform } from '../utils/permission'
 import { getDesktopSources } from '../utils/screen'
+import { getValue } from '../utils/store'
 
 interface UseWebRTCShareOptions {
   signalingUrl: string
@@ -28,6 +29,7 @@ export function useWebRTCShare(options: UseWebRTCShareOptions) {
   const disconnected = ref(false)
   const from = ref('')
 
+  from.value = await getValue('desktop.from')
   let heartbeatInterval: ReturnType<typeof setInterval> | null = null
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
