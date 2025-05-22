@@ -11,7 +11,7 @@ interface UseWebRTCWatchOptions {
 export function useWebRTCWatch(options: UseWebRTCWatchOptions) {
     const remoteStream = ref<MediaStream | null>(null)
     const disconnected = ref(false)
-    let dataChannel
+    let dataChannel:any
     const peer = new RTCPeerConnection({
         iceServers: [
             { urls: 'stun:turn.tecgui.cn:3478' },
@@ -168,7 +168,7 @@ export function useWebRTCWatch(options: UseWebRTCWatchOptions) {
         stopHeartbeat()
     }
 
-    const sendDataChannelMessage = (message) => {
+    const sendDataChannelMessage = (message:any) => {
         if (dataChannel && dataChannel.readyState === 'open') {
             console.log(message)
             dataChannel.send(JSON.stringify(message))

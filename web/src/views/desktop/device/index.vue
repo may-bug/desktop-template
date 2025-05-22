@@ -5,7 +5,7 @@ import {Message} from "@arco-design/web-vue";
 import {useDataStore} from "../../../stores/useDataStore.ts";
 
 const dataStore=useDataStore();
-const inputDeviceId=ref("155150264")
+const inputDeviceId=ref("539954838")
 const connectDevice=()=>{
   const trimmedId = inputDeviceId.value.trim()
   if (!trimmedId) {
