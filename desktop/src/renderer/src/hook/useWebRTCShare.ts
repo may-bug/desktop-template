@@ -1,7 +1,6 @@
 import { onBeforeUnmount, ref } from 'vue'
 import { getPlatform } from '../utils/permission'
 import { getDesktopSources } from '../utils/screen'
-import { getValue } from '../utils/store'
 
 interface UseWebRTCShareOptions {
   signalingUrl: string
@@ -29,7 +28,6 @@ export function useWebRTCShare(options: UseWebRTCShareOptions) {
   const disconnected = ref(false)
   const from = ref('')
 
-  from.value = await getValue('desktop.from')
   let heartbeatInterval: ReturnType<typeof setInterval> | null = null
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -162,14 +160,20 @@ export function useWebRTCShare(options: UseWebRTCShareOptions) {
           }
         }
       })
-      localStream.value.getTracks().forEach((track) => {
-        console.log('添加轨道:', track.kind)
-        peer.addTrack(track, localStream.value)
-      })
-      await initSignaling()
-      console.log('Senders:', peer.getSenders())
-      return localStream.value
     }
+    else {
+      localStream.value = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false
+      })
+    }
+    localStream.value.getTracks().forEach((track) => {
+      console.log('添加轨道:', track.kind)
+      peer.addTrack(track, localStream.value)
+    })
+    await initSignaling()
+    console.log('Senders:', peer.getSenders())
+    return localStream.value
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
