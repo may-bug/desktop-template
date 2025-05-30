@@ -74,8 +74,6 @@
     "@arco-design/web-vue": "^2.56.3",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
-    "@nut-tree/nut-js": "^4.2.0",
-    "@stomp/stompjs": "^7.1.1",
     "axios": "1.8.2",
     "electron-log": "^5.3.0",
     "electron-store": "8.2.0",
@@ -85,8 +83,7 @@
     "systeminformation": "^5.25.11",
     "vite-plugin-svg-icons": "^2.0.1",
     "vue-hooks-plus": "^2.2.3",
-    "vue-router": "^4.5.0",
-    "ws": "^8.18.2"
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "3.0.0",
