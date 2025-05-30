@@ -19,27 +19,28 @@ const loading = ref(false)
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const handleSubmit = () => {
-  loading.value = true
-  loginByAccountApi(loginForm.value)
-    .then((res) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      if (res.code === 200) {
-        Message.success('登录成功')
-        dataStore.setUid(res.data.uid)
-        dataStore.setToken(res.data.token)
-        setValue('uid', res.data.uid)
-        setValue('token', res.data.token)
-        props.open?.()
-      } else {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        Message.error(res.msg)
-      }
-    })
-    .then(() => {
-      loading.value = false
-    })
+  // loading.value = true
+  // loginByAccountApi(loginForm.value)
+  //   .then((res) => {
+  //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //     //@ts-ignore
+  //     if (res.code === 200) {
+  //       Message.success('登录成功')
+  //       dataStore.setUid(res.data.uid)
+  //       dataStore.setToken(res.data.token)
+  //       setValue('uid', res.data.uid)
+  //       setValue('token', res.data.token)
+  //       props.open?.()
+  //     } else {
+  //       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //       //@ts-ignore
+  //       Message.error(res.msg)
+  //     }
+  //   })
+  //   .then(() => {
+  //     loading.value = false
+  //   })
+  props.open()
 }
 </script>
 

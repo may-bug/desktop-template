@@ -14,7 +14,6 @@ import { initFile } from './file'
 import { initUpdate } from './update'
 import { initNet } from './net'
 import { initPermissionHandler } from './permission'
-import { initScreen } from './screen'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import { store } from './store'
@@ -71,10 +70,6 @@ app.whenReady().then(async () => {
    * 剪贴板
    */
   initClipboard()
-  /**
-   * 初始化桌面捕捉
-   */
-  initScreen()
   /**
    * 消息订阅
    */

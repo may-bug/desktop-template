@@ -30,10 +30,6 @@ const showMore = ref<boolean>(false)
 
 const bottomMenus = ref([
   {
-    name: 'menu-pc',
-    value: 'desktop'
-  },
-  {
     name: 'menu-more',
     value: 'app'
   },
@@ -69,10 +65,6 @@ const handleClick = (item: string) => {
     case 'app':
       showMore.value = false
       createWindow('app', '应用', 900, 600, '/app', false, undefined)
-      break
-    case 'desktop':
-      showMore.value = false
-      router.push("/main/desktop")
       break
     default:
       break

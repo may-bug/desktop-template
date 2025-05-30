@@ -16,13 +16,8 @@ import { onMounted } from 'vue'
 import { updateInfo } from '../../utils/update'
 import SideBar from '../../components/SideBar.vue'
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const initMessage = () =>{
-  window.electron.ipcRenderer.send('sub-desktop-message')
-}
 onMounted(() => {
   updateInfo()
-  initMessage()
 })
 </script>
 

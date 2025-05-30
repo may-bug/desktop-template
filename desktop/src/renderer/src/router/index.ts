@@ -33,32 +33,14 @@ const routes = [
         name: 'main-home',
         // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         component: () => import('@renderer/views/main/home/index.vue')
-      },
-      {
-        path: 'desktop',
-        name: 'desktop',
-        meta: {
-          title: '远程桌面'
-        },
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-        component: () => import('@renderer/views/desktop/index.vue')
-      },
+      }
     ]
-  },
-  {
-    path: '/remote',
-    name: 'remote',
-    meta: {
-      title: '远程桌面'
-    },
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    component: () => import('@renderer/views/desktop/Remote.vue'),
   },
   {
     path: '/close',
     name: 'close',
     meta: {
-      title: '提示'
+      title: '关闭'
     },
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     component: () => import('@renderer/views/close/index.vue')
