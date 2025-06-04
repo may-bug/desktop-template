@@ -11,7 +11,7 @@ import { useDataStore } from '../../stores/useDataStore'
 import { onMounted, ref } from 'vue'
 
 const dataStore = useDataStore()
-const from=ref()
+const from = ref()
 const webRTCShare = useWebRTCShare({
   signalingUrl: 'wss://server.tecgui.cn/ws/signaling',
   token: dataStore.token,
