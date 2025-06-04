@@ -63,8 +63,7 @@
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
     "build:linux": "npm run build && electron-builder --linux",
-    "build:all": "npm run build:linux && npm run build:win",
-    "rebuild:robotjs": "electron-rebuild -f -w @node-robotics/robotjs"
+    "build:all": "npm run build:linux && npm run build:win"
   },
   "dependencies": {
     "@arco-design/web-vue": "^2.56.3",
