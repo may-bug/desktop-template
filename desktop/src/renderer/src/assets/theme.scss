@@ -1,5 +1,4 @@
 @use "sass:color"; // 新增颜色模块引用
-
 // ========================
 // 基础变量
 // ========================
@@ -33,10 +32,9 @@ $line-height-loose: 1.75;
 :root {
   // ---------- 颜色系统 ----------
   /* 主色系 */
-  --color-primary: #409EFF;
-  --color-primary-light: #{color.adjust(#409EFF, $lightness: 10%)};
-  --color-primary-dark: #{color.adjust(#409EFF, $lightness: -10%)};
+  --color-primary: rgb(22, 93, 255);
   --color-primary-hover: #{color.adjust(#409EFF, $lightness: 8%)};
+  --color-primary-click: #{color.adjust(#409EFF, $lightness: 8%)};
   --color-primary-active: #{color.adjust(#409EFF, $lightness: -8%)};
   --color-primary-disabled: #{color.change(#409EFF, $alpha: 0.4)};
 

@@ -17,8 +17,7 @@ import * as url from 'node:url'
 /**
  * 创建窗口IPC
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const initWindows = () => {
+const initWindows: void = () => {
   //创建普通窗口
   ipcMain.on(
     'create-window',
@@ -62,9 +61,6 @@ const initWindows = () => {
   ipcMain.on('close-window', (_event, id: string) => {
     windowsContainer[id].close()
     windowsContainer[id].destroy()
-    // if (windowsContainer['main'].isDestroyed()) {
-    //   app.quit()
-    // }
   })
 
   //隐藏窗口
@@ -91,20 +87,6 @@ const initWindows = () => {
    */
   ipcMain.on('maximize-window', (_event, id: string) => {
     windowsContainer[id].maximize()
-  })
-
-  //关闭所有窗口但保留后台
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ipcMain.on('all-hide-not-exit-window', (_event) => {
-    // for (const winKey in windowsContainer) {
-    //   if (Object.prototype.hasOwnProperty.call(windowsContainer, winKey)) {
-    //     const win = windowsContainer[winKey];
-    //     if (!win.isDestroyed()) {
-    //       win.setSkipTaskbar(true)
-    //       win.hide()
-    //     }
-    //   }
-    // }
   })
 
   /**

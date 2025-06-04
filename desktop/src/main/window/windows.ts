@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-nocheck
 import { join } from 'path'
 import { app, BrowserWindow, dialog, shell, screen } from 'electron'
 import icon from '../../../resources/icon.png?asset'
@@ -134,10 +132,13 @@ const showNextNotify = () => {
   })
   notifyWindow.show()
   notifyWindow.focus()
-  setTimeout(() => {
+  setTimeout(
+    () => {
       notifyWindow?.hide()
       showNextNotify()
-  }, params.timeout || 60 * 1000)
+    },
+    params.timeout || 60 * 1000
+  )
 }
 // 通知弹窗
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

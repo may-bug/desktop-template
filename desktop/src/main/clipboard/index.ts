@@ -2,10 +2,9 @@ import { clipboard, nativeImage } from 'electron'
 import { ipcMain } from 'electron'
 
 /**
- * 剪贴板
+ * 剪贴板复制
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const initClipboard = () => {
+const initClipboard: object = () => {
   ipcMain.handle('copy-image-to-clipboard', async (event, imageData) => {
     try {
       const image = nativeImage.createFromDataURL(imageData)

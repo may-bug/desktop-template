@@ -5,7 +5,10 @@ import AccountLogin from './AccountLogin.vue'
 import QrLogin from './QrLogin.vue'
 import { onMounted, ref } from 'vue'
 import { isLoginAPI } from '../../api/auth'
+import Icon from '../../components/Icon.vue'
+
 const showView = ref('account')
+const avatarUrl = ref('avatar')
 /**
  * 打开主界面
  */
@@ -36,7 +39,11 @@ onMounted(async () => {
 <template>
   <div class="login">
     <Header window-id="login" :is-min-max="false"></Header>
-    <AccountLogin v-if="showView === 'account'" :open="openMainWindow" />
+    <div v-if="showView == 'loading' || showView == 'account'" class="avatar">
+      <Icon v-if="avatarUrl == 'avatar'" name="common-avatar" :size="80" />
+      <img v-else class="avatar-img" :src="avatarUrl" alt="头像" />
+    </div>
+    <AccountLogin v-if="showView === 'account'" :open="openMainWindow" :loading="showView" />
     <QrLogin v-if="showView === 'qr'" :open="openMainWindow" />
     <div class="link-container">
       <div class="link" @click="handleClick">{{ showView === 'qr' ? '账号登录' : '扫码登录' }}</div>
@@ -65,6 +72,20 @@ onMounted(async () => {
         cursor: pointer;
       }
     }
+  }
+}
+.avatar {
+  margin: 10px 0;
+  padding: 10px 0;
+  color: var(--color-primary);
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .avatar-img {
+    width: 80px;
+    height: 80px;
   }
 }
 </style>

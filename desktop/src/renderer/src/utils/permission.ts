@@ -2,12 +2,12 @@ import { Message } from '@arco-design/web-vue'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const requestDesktopCapturePermission = () => {
-  window.electron.ipcRenderer.send('request-desktop-capture-permission')
+  window.electron.ipcRenderer.send('request-desktop-capture-sys')
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const openSystemPreferences = () => {
-  window.electron.ipcRenderer.send('request-desktop-capture-permission')
+  window.electron.ipcRenderer.send('request-desktop-capture-sys')
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

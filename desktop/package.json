@@ -97,6 +97,7 @@
     "electron-vite": "^3.0.0",
     "eslint": "^9.20.1",
     "eslint-plugin-vue": "^9.32.0",
+    "less": "^4.3.0",
     "prettier": "^3.5.1",
     "sass": "^1.85.0",
     "scss": "^0.2.4",

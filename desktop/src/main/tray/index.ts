@@ -28,7 +28,7 @@ const initTray = () => {
   tray.setContextMenu(contextMenu)
 
   // 设置Tray图标的提示文本
-  tray.setToolTip('XF-Desktop')
+  tray.setToolTip('CodeLin')
 
   // 处理Tray图标的点击事件
   tray.on('click', () => {

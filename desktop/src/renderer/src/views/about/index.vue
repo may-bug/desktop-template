@@ -13,7 +13,7 @@ const showAgreement = () => {
   <div class="container">
     <img src="@renderer/assets/img/public/logo.png" alt="QQ Penguin" class="penguin" />
     <div class="version-info">
-      <div class="tc app">TECGUI</div>
+      <div class="tc app">Codelin</div>
       <div class="tc version">版本: 1.0.0.1 (64位)</div>
       <div class="tc copyright">Copyright © 2023-{{ new Date().getFullYear() }} tecgui.cn.</div>
       <div class="tc right">

@@ -20,9 +20,6 @@ const initNet = () => {
     const type = getNetworkType()
     const speed = await getNetworkSpeed()
     const latency = null
-    //   = await new Promise((resolve, reject) => {
-    //   ping('tecgui.cn', (err, result) => (err ? reject(err) : resolve(result)))
-    // })
     return { type, speed, latency }
   })
 }

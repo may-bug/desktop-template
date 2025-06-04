@@ -16,6 +16,9 @@ class Database {
     this.db = new sqlite3.Database(dbPath)
   }
 
+  /**
+   * 打开数据库连接
+   */
   open(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return new Promise<void>((resolve, reject) => {
@@ -27,6 +30,9 @@ class Database {
     })
   }
 
+  /**
+   * 关闭数据库连接
+   */
   close(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.db.close((err) => {
@@ -41,6 +47,10 @@ class Database {
     })
   }
 
+  /**
+   * sql 语句
+   * @param param
+   */
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   query(param: queryParam) {
     return new Promise((resolve, reject) => {
@@ -62,6 +72,10 @@ class Database {
     })
   }
 
+  /**
+   * 插入数据
+   * @param param
+   */
   insert(param: insertParam): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       const keys = Object.keys(param.data)
@@ -86,6 +100,10 @@ class Database {
     })
   }
 
+  /**
+   * 更新数据
+   * @param param
+   */
   update(param: updateParam): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       const entries = Object.entries(param.data)
@@ -112,6 +130,10 @@ class Database {
     })
   }
 
+  /**
+   * 删除数据
+   * @param param
+   */
   delete(param: deleteParam): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const sql = `DELETE FROM ${param.table} WHERE ${param.condition}`

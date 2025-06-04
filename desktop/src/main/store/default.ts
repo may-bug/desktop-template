@@ -18,10 +18,9 @@ const createStore = () => {
   const option = {
     name: 'config',
     fileExtension: 'json',
-    cwd: app.getPath('userData'), //文件位置,尽量不要动，默认情况下，它将通过遵循系统约定来选择最佳位置。C:\Users\xxx\AppData\Roaming\my-electron\config.json
-    // encryptionKey: 'aes-256-cbc',//对配置文件进行加密
-    // 发生 SyntaxError  则清空配置,
-    clearInvalidConfig: false
+    cwd: app.getPath('userData'), //文件位置,尽量不要动，默认情况下，它将通过遵循系统约定来选择最佳位置。
+    encryptionKey: 'aes-256-cbc', //对配置文件进行加密
+    clearInvalidConfig: false // 发生 SyntaxError  则清空配置
   }
   const store = new Store(option)
   initialState(store, 'welcome', false)

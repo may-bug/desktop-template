@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Header from '@renderer/components/Header.vue'
-import { closeWindow, exitApp } from '@renderer/utils/windows'
+import { closeWindow, exitApp } from '../../utils/windows'
 import { onMounted, ref, watch } from 'vue'
 import { getConfig, hideNotExitWindow, setConfig } from '../../utils/windows'
 

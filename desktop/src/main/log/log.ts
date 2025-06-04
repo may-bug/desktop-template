@@ -11,8 +11,7 @@ interface LogParams {
 log.transports.console.level = true
 log.transports.file.level = 'debug'
 log.transports.file.maxSize = 10024300 // 文件最大不超过 10M
-// 输出格式
-log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}'
+log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}' // 输出格式
 const dateStr = new Date().toISOString().split('T')[0]
 
 // 修改为 resolvePathFn，并添加正确的返回类型
