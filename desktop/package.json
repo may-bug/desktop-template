@@ -19,10 +19,6 @@
     },
     "extraResources": [
       {
-        "from": "node_modules/@ffmpeg/core/dist/ffmpeg-core.js",
-        "to": "resources/ffmpeg"
-      },
-      {
         "from": "./vlc-3.0.9.2",
         "to": "vlc-3.0.9.2",
         "filter": [
